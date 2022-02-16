@@ -1,6 +1,6 @@
 {
   "name": "varian-converter",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Load and parse varian NMR native format",
   "main": "./lib/index.js",
   "module": "./lib-esm/index.js",
