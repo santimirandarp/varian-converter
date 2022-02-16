@@ -14,13 +14,11 @@ Load and parse varian NMR native format.
 ## Usage
 
 ```js
-import {readFileSync} from 'fs';
 import {join} from 'path';
 
-import { convert } from 'varian-converter';
+import { convert1D } from 'varian-converter';
 
-const fidFile = readFileSync(join(__dirname, "path/to/dir.fid/fid")) 
-const result = convert(fidFile); /* json with all the data converted from the binary source. */
+const result = convert1D(join(__dirname, "path/to/dir.fid")) 
 ```
 
 ## License

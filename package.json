@@ -37,15 +37,16 @@
   "homepage": "https://github.com/cheminfo/varian-converter#readme",
   "devDependencies": {
     "@types/jest": "^27.4.0",
-    "eslint": "^8.7.0",
+    "eslint": "^8.9.0",
     "eslint-config-cheminfo-typescript": "^10.3.0",
-    "jest": "^27.4.7",
+    "jest": "^27.5.1",
     "prettier": "^2.5.1",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.1.3",
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "iobuffer": "^5.1.0"
+    "iobuffer": "^5.1.0",
+    "ml-spectra-processing": "^10.0.0"
   }
 }

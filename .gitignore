@@ -123,4 +123,4 @@ lib-esm
 # for typedoc tests
 .docs
 # tests snapshots
-__snapshots__
+src/__tests__/__snapshots__
