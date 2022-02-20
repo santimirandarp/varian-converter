@@ -6,64 +6,42 @@ Varian/Agilent instruments store data under a directory ending in '.fid':
 * **text**: text file. Comments, notes text.
 * **log**: text file. Error messages, acquisition data.
 
-**fid** file stores experiment's parameters **and** the FIDs.
-
-## NMR brief background
-The Free Induction Decay experiment (FID) consist in irradiating a sample in a static magnetic field (B) with a pulse of radiofrequency (Rf, EM wave at that range of frequencies) that excites the nuclear spin. The resonance radio frequency (RRf) is chosen for a particular atom and applied **B** (zeeman effect). Those then decay back to equilibrium and this signal (induced voltage caused by the change in magnetic field) is measured over time. This decay-energy is called Free Induction Decay (FID). The environment effect makes possible to distinguish different magnetic atoms (shielding effect): Beff = B - Bshielding.
-
-Applied B induces a B opposed to it in the sample, known as bulk magnetization. The actual RRf changes the spin and moves the bulk magnetization vector from Z (applied B) to xy plane (sample then relaxes by Spin-Lattice, T1, or Spin-Spin, T2). If there is no magnetic field, there is no energy difference. If there is, the energy difference is proportional to the applied field (This is known as Zeeman Effect. [Basics here][Zeeman]). 
-
-The actual FID data are floating point numbers. To get the shifts the FIDs have to be Fourier Transformed.
-
-<<<<<<< Updated upstream
-## File Post-Processing
-
-When file was post-processed (after measurement) **procpar** and **fid** file params may disagree. **fid** always matches the **data** on disk. There are however, important sample data to be taken from **procpar**.
-
-* Get FIDs and params from **fid**,
-* Get sample information from **procpar**.
-
-## fid
-* FileHeader (first 32B): File Metadata: the number of blocks, size of blocks etc. 
-For fid files holding FIDs - and not transformed spectras, the number of block headers is 1.
-* BlockHeader (28B): Block Metadata. There may be several headers depending on different FileHeader
-  parameters.
-* BlockBody: either Int16, Int32 or Float32 numbers.
-
-The 1D NMR data files have the following structure:          
-```
-filehead  blockhead  blockdata  blockhead  blockdata ...  	
-```								
-
-The 2D NMR data files have the following structure:		
-```
-filehead  blockhead  blockhead2  blockdata ...		
-```								
-
-The 3D NMR data files have the following structure:		
-```
-filehead  blockhead  blockhead2  blockhead2  blockdata ..	
-```								
-								
-All blocks within one file have exactly the same size.       
-								
-The general structure of those headers is different, but they share some properties (example
-[Status class, under utils](./src/utils).)
-=======
 **fid** file stores runtime flags **and** the 1D fid | 2D fid | spectral data.
 
-The spin's magnetic moment is excited and the I(t) record is the fid; those are in turn FT transformed to get
-the spectral data. FIDs are stored as 16int,32int or float32.
+The spin's magnetic moment is excited and the decay I(t) record is the fid; those are in turn FT transformed to get
+the frequency -spectral- data.
 
-**procpar** some parameters should be read from **fid** file, because they could have changed after measurement was taken. (for example after compresison fid will indicate 16bits and procpar 32bits). The procpar stores parameters set in the software to perform the measurements, but not necessarily the **data** on disk. Some values though, we can safely scrape out. 
+> The actual FID data is typically stored as pairs floating-point numbers. The first represents the real part of a complex pair and the second represents the imaginary component.  
+From the VnmrJ User Programming Manual (chapter 5).
+
+**procpar** some parameters should be read from **fid** file, because they could have changed after measurement was taken. (for example after compression fid will indicate 16bits and procpar 32bits). The procpar stores parameters set in the software to perform the measurements, but not necessarily the **data** on disk. Some values though, we can safely scrape out. 
 
 The C header **data.h** is the map to interpret the binary code.
 
 * Fileheader (first 32B): File Metadata: number of blocks, size of blocks etc. 
 * BlockHeader (28B): Block Metadata.
+* BlockBody: Int16 | Int32 | Float32
 
-The general structure of those headers is different, but they share some properties (example [Status class, under utils](./src/utils).)
->>>>>>> Stashed changes
+## Blocks
+* **1D NMR** Arrayed data files have the following structure:          
+```
+filehead  blockhead  blockdata  blockhead  blockdata ...  	
+```								
+For non arrayed FIDs there would be just one data block.
+
+* **2D NMR** data files have the following structure:		
+```
+filehead  blockhead  blockhead2  blockdata ...		
+```								
+
+* **3D NMR** data files have the following structure:		
+```
+filehead  blockhead  blockhead2  blockhead2  blockdata ..	
+```								
+								
+_All blocks within one file have exactly the same size_.
+								
+
 
 ## procpar
 Text file storing the user input information, instrument settings. The arrange of
@@ -108,6 +86,11 @@ These are a few `name`s, alphabetically:
 * **username**
 See [OpenVnmrJ variables.h](https://github.com/OpenVnmrJ/OpenVnmrJ/blob/master/src/vnmr/variables.h)
 for info on how to parse this file.
+
+## NMR brief background
+The Free Induction Decay experiment (FID) consist in irradiating a sample in a static magnetic field (B) with a pulse of radiofrequency (Rf, EM wave at that range of frequencies) that excites the nuclear spin. The resonance radio frequency (RRf) is chosen for a particular atom and applied **B** (zeeman effect). Those then decay back to equilibrium and this signal (induced voltage caused by the change in magnetic field) is measured over time. This decay-energy is called Free Induction Decay (FID). The environment effect makes possible to distinguish different magnetic atoms (shielding effect): Beff = B - Bshielding.
+
+Applied B induces a B opposed to it in the sample, known as bulk magnetization. The actual RRf changes the spin and moves the bulk magnetization vector from Z (applied B) to xy plane (sample then relaxes by Spin-Lattice, T1, or Spin-Spin, T2). If there is no magnetic field, there is no energy difference. If there is, the energy difference is proportional to the applied field (This is known as Zeeman Effect. [Basics here][Zeeman]). 
 
 ## Reads
 * [Free Induction Decay FID Wiki](https://en.wikipedia.org/wiki/Free_induction_decay).
