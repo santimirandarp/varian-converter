@@ -15,6 +15,7 @@ Applied B induces a B opposed to it in the sample, known as bulk magnetization. 
 
 The actual FID data are floating point numbers. To get the shifts the FIDs have to be Fourier Transformed.
 
+<<<<<<< Updated upstream
 ## File Post-Processing
 
 When file was post-processed (after measurement) **procpar** and **fid** file params may disagree. **fid** always matches the **data** on disk. There are however, important sample data to be taken from **procpar**.
@@ -48,6 +49,21 @@ All blocks within one file have exactly the same size.
 								
 The general structure of those headers is different, but they share some properties (example
 [Status class, under utils](./src/utils).)
+=======
+**fid** file stores runtime flags **and** the 1D fid | 2D fid | spectral data.
+
+The spin's magnetic moment is excited and the I(t) record is the fid; those are in turn FT transformed to get
+the spectral data. FIDs are stored as 16int,32int or float32.
+
+**procpar** some parameters should be read from **fid** file, because they could have changed after measurement was taken. (for example after compresison fid will indicate 16bits and procpar 32bits). The procpar stores parameters set in the software to perform the measurements, but not necessarily the **data** on disk. Some values though, we can safely scrape out. 
+
+The C header **data.h** is the map to interpret the binary code.
+
+* Fileheader (first 32B): File Metadata: number of blocks, size of blocks etc. 
+* BlockHeader (28B): Block Metadata.
+
+The general structure of those headers is different, but they share some properties (example [Status class, under utils](./src/utils).)
+>>>>>>> Stashed changes
 
 ## procpar
 Text file storing the user input information, instrument settings. The arrange of
