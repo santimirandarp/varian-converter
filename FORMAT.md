@@ -6,10 +6,8 @@ Varian/Agilent instruments store data under a directory ending in '.fid':
 * **text**: text file. Comments, notes text.
 * **log**: text file. Error messages, acquisition data.
 
-**fid** file stores runtime flags **and** the 1D fid | 2D fid | spectral data.
-
-The spin's magnetic moment is excited and the decay I(t) record is the fid; those are in turn FT transformed to get
-the frequency -spectral- data.
+**fid** file stores experiment flags and 1D fid | 2D fid | spectral data; as integers or
+floating points.
 
 > The actual FID data is typically stored as pairs floating-point numbers. The first represents the real part of a complex pair and the second represents the imaginary component.  
 From the VnmrJ User Programming Manual (chapter 5).
@@ -88,6 +86,10 @@ See [OpenVnmrJ variables.h](https://github.com/OpenVnmrJ/OpenVnmrJ/blob/master/s
 for info on how to parse this file.
 
 ## NMR brief background
+
+The actual FID data is typically stored as pairs floating-point numbers. The first represents
+the real part of a complex pair and the second represents the imaginary component.
+
 The Free Induction Decay experiment (FID) consist in irradiating a sample in a static magnetic field (B) with a pulse of radiofrequency (Rf, EM wave at that range of frequencies) that excites the nuclear spin. The resonance radio frequency (RRf) is chosen for a particular atom and applied **B** (zeeman effect). Those then decay back to equilibrium and this signal (induced voltage caused by the change in magnetic field) is measured over time. This decay-energy is called Free Induction Decay (FID). The environment effect makes possible to distinguish different magnetic atoms (shielding effect): Beff = B - Bshielding.
 
 Applied B induces a B opposed to it in the sample, known as bulk magnetization. The actual RRf changes the spin and moves the bulk magnetization vector from Z (applied B) to xy plane (sample then relaxes by Spin-Lattice, T1, or Spin-Spin, T2). If there is no magnetic field, there is no energy difference. If there is, the energy difference is proportional to the applied field (This is known as Zeeman Effect. [Basics here][Zeeman]). 
