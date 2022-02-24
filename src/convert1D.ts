@@ -20,8 +20,8 @@ export interface Fid {
   /** will be an array or a single fid, It also holds the header with fid metadata */
   // fids: Block[]|Block; this will likely be used for 2D
   fid: Block;
-  /** To get the time values, we need to read procpar */
-  time: Float64Array;
+  /** x is the time values. Gotten from procpar */
+  x: Float64Array;
   /** always an array, there are hundreds of parameters set */
   procpar: Param[];
 }
@@ -71,7 +71,7 @@ export function convert1D(pathToFidDir: string): Fid {
     );
   }
   /* and use it to create the time X array */
-  const time = createXArray({
+  const x = createXArray({
     from: 0,
     to: at,
     length: fileHeader.np,
@@ -97,5 +97,5 @@ export function convert1D(pathToFidDir: string): Fid {
   else {}
 */
 
-  return { meta: fileHeader, fid, procpar, time };
+  return { meta: fileHeader, fid, procpar, x };
 }

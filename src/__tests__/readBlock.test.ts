@@ -3,7 +3,7 @@ import { join } from 'path';
 
 import { IOBuffer } from 'iobuffer';
 
-import { Block } from '../readBlock';
+import { BodyData, Block } from '../readBlock';
 import { FileHeader } from '../readFileHeader';
 import { setEndianFromValue } from '../utils';
 
@@ -27,5 +27,7 @@ test('read data block', () => {
     index: 1,
     ctCount: 160,
   });
-  expect(block.data).toHaveLength(65536);
+  const data = block.data as BodyData;
+  expect(data.re).toHaveLength(fh.np / 2);
+  expect(data.im).toHaveLength(fh.np / 2);
 });
