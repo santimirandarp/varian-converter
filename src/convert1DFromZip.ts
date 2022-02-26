@@ -3,13 +3,13 @@ import { fileListFromZip } from 'filelist-from';
 import { convert1D, Fid } from './convert1D';
 
 /** modification time in milliseconds */
-export type mTimeMS = number;
+export type MTimeMS = number;
 
 /** File interface for files loaded into the program */
 export interface File {
   name: string;
   webkitRelativePath: string;
-  lastModified: Date | mTimeMS;
+  lastModified: Date | MTimeMS;
   size: number;
   text: () => Promise<string>;
   arrayBuffer: () => Promise<ArrayBuffer>;
@@ -21,13 +21,13 @@ export interface File {
  * use either in browser or node js in any case, pass an ArrayBuffer.
  */
 export async function convert1DFromZip(zip: ArrayBuffer): Promise<Fid> {
-  let fidB: ArrayBuffer|undefined;
-  let procparB: ArrayBuffer|undefined;
+  let fidB: ArrayBuffer | undefined;
+  let procparB: ArrayBuffer | undefined;
 
   const fileList: File[] = await fileListFromZip(zip);
 
   for (let fb of fileList) {
-    let val = fb['name'].toLowerCase();
+    let val = fb.name.toLowerCase();
     switch (val) {
       case 'fid': {
         fidB = await fb.arrayBuffer();

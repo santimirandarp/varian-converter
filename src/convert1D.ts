@@ -1,5 +1,3 @@
-import { join } from 'path';
-
 import { IOBuffer } from 'iobuffer';
 import { createFromToArray as createXArray } from 'ml-spectra-processing';
 
@@ -33,7 +31,6 @@ export interface Fid {
  * @return Fid Object containing the parsed information from the fid directory
  */
 export function convert1D(files: VarianFiles): Fid {
-  
   const { fidB, procparB } = files;
 
   let fidBuffer = new IOBuffer(fidB);
@@ -49,15 +46,16 @@ export function convert1D(files: VarianFiles): Fid {
   const x = createXArray({
     from: 0,
     to: at,
-    length: fileHeader.np/2,//all data seen is complex datapoints
+    length: fileHeader.np / 2, //all data seen is complex datapoints
     distribution: 'uniform',
   });
 
   /* read the data block(s) for the fid file */
   // let fids: Block[]|Block = []; likely used for 2D
   let fid: Block;
-  if (fileHeader.nBlocks === 1) fid = new Block(fidBuffer, fileHeader) 
-  else {
+  if (fileHeader.nBlocks === 1) {
+    fid = new Block(fidBuffer, fileHeader);
+  } else {
     throw new RangeError(
       `nBlocks is ${fileHeader.nBlocks}. If file is 2D use convert2D`,
     );
