@@ -1,5 +1,5 @@
-import { join } from 'path';
 import {readFileSync} from 'fs';
+import { join } from 'path';
 
 import { convert1DFromDir } from '../convert1DFromDir';
 import { convert1DFromZip } from '../convert1DFromZip';
@@ -13,7 +13,7 @@ describe('convert fid file for protons', () => {
    // expect(result).toMatchSnapshot();
   });
   it('proton.fid.zip', async() => {
-    const ab= await readFileSync(join(__dirname, '../../data/proton.zip'));
+    const ab= readFileSync(join(__dirname, '../../data/proton.zip'));
     const result = await convert1DFromZip(ab);
     expect(Object.keys(result.meta)).toHaveLength(9);
     expect(Object.keys(result.fid)).toHaveLength(10);
