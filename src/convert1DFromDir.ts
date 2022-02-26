@@ -17,9 +17,11 @@ export function convert1DFromDir(pathToFidDir: string): Fid {
   /* set fid and procpar */
   for (let fname of files) {
     const f = fname.toLowerCase();
-    if (f === 'fid') {fidB = readFileSync(join(pathToFidDir, fname));}
-    else if (f === 'procpar')
-      {procparB = readFileSync(join(pathToFidDir, fname));}
+    if (f === 'fid') {
+      fidB = readFileSync(join(pathToFidDir, fname));
+    } else if (f === 'procpar') {
+      procparB = readFileSync(join(pathToFidDir, fname));
+    }
   }
 
   if (!fidB || !procparB) {
