@@ -54,13 +54,13 @@ export interface Param extends Header {
 }
 
 /** Get parameters from the procpar file
- * @param buffer - a Buffer instance. You get this using:
+ * @param buffer - ArrayBuffer instance. You get this using:
  ```
- const myBuffer = fs.readFileSync('path/to/propar');
- const ps = getParameters(myBuffer);
+ const AB = fs.readFileSync('path/to/propar');
+ const ps = getParameters(AB);
  ```
  */
-export function getParameters(buffer: Buffer): Param[] {
+export function getParameters(buffer: ArrayBuffer): Param[] {
   /*
      Each parameter is thought as 3 blocks:
      ```
@@ -72,7 +72,9 @@ export function getParameters(buffer: Buffer): Param[] {
      FB could be multiple lines.
    */
   let params: Param[] = [];
-  let lines = new Lines(buffer); /*split file by lines, store in array*/
+  let lines = new Lines(
+    Buffer.from(buffer),
+  ); /*split file by lines, store in array*/
 
   while (lines.offset < lines.length - 1) {
     /* array of vals for current parameter.*/

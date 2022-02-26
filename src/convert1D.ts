@@ -1,4 +1,3 @@
-import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
 import { IOBuffer } from 'iobuffer';
@@ -9,93 +8,67 @@ import { FileHeader } from './readFileHeader';
 import { Param, getParameters } from './readProcPar';
 import { setEndianFromValue } from './utils';
 
-/**
- * varian-convert takes a `fid` input file as a buffer or array buffer
- * and retrieves an object storing all metadata, data and information from the
- * original `fid` file.
- */
+/** input format */
+export interface VarianFiles {
+  fidB: ArrayBuffer;
+  procparB: ArrayBuffer;
+}
+
 export interface Fid {
-  /** first block - header - of the fid file. Stores important file metadata.*/
+  /** first block - header - of the fid file.*/
   meta: FileHeader;
-  /** will be an array or a single fid, It also holds the header with fid metadata */
+  /** fid data + metadata */
   // fids: Block[]|Block; this will likely be used for 2D
   fid: Block;
-  /** x is the time values. Gotten from procpar */
+  /** x is the time values. */
   x: Float64Array;
-  /** always an array, there are hundreds of parameters set */
+  /** parameters set */
   procpar: Param[];
 }
 
 /**
- * Converts a fid **directory** to JSON object (procpar and fid need to exist).
- * The reason is that Varian/Agilent store critical information in the procpar file.
- * Those files are read disregarding the capitalization.
- * @param pathToFidDir - String with absolute path to the directory.
+ * Converts FileList to object (procpar & fid need to exist).
+ * Varian/Agilent store critical information in the procpar file.
+ * @param files - File array or Files1D
  * @return Fid Object containing the parsed information from the fid directory
  */
-export function convert1D(pathToFidDir: string): Fid {
-  /* filenames for files under the fid directory */
-  const files = readdirSync(pathToFidDir);
+export function convert1D(files: VarianFiles): Fid {
+  
+  const { fidB, procparB } = files;
 
-  /* variables storing files are capitalized */
-  let FID, PROCPAR;
+  let fidBuffer = new IOBuffer(fidB);
+  setEndianFromValue(fidBuffer); /* some files may use big endian */
 
-  /* get fid and procpar */
-  files.forEach((fname) => {
-    const f = fname.toLowerCase();
-    if (f === 'fid') FID = readFileSync(join(pathToFidDir, fname));
-    else if (f === 'procpar') PROCPAR = readFileSync(join(pathToFidDir, fname));
-  });
-
-  /* Or throw an Error */
-  if (!FID || !PROCPAR) {
-    /*check that files were found*/
-    throw new Error(`fid and/or procpar not found. Found ${files.join(',')}`);
-  }
-
-  let fidBuffer = new IOBuffer(FID);
-  /* some files may use big endian */
-  setEndianFromValue(fidBuffer);
-
-  /* has many useful parameters, we use "np" i.e number of points next */
   const fileHeader = new FileHeader(fidBuffer);
+  const procpar = getParameters(procparB);
 
-  /* get experiment parameters */
-  const procpar = getParameters(PROCPAR);
-  /* extract acquisition time */
+  /* acquisition time */
   const at = procpar.filter((par) => par.name === 'at')[0].values[0] as number;
-  const tat = typeof at;
-  if (tat !== 'number') {
-    throw new Error(
-      `'at' parameter in procpar must be type number. Found ${tat}`,
-    );
-  }
-  /* and use it to create the time X array */
+
+  /* Create the time */
   const x = createXArray({
     from: 0,
     to: at,
-    length: fileHeader.np,
+    length: fileHeader.np/2,//all data seen is complex datapoints
     distribution: 'uniform',
   });
 
   /* read the data block(s) for the fid file */
   // let fids: Block[]|Block = []; likely used for 2D
   let fid: Block;
-  if (fileHeader.nBlocks === 1) {
-    fid = new Block(fidBuffer, fileHeader);
-  } else {
-    throw new Error(
+  if (fileHeader.nBlocks === 1) fid = new Block(fidBuffer, fileHeader) 
+  else {
+    throw new RangeError(
       `nBlocks is ${fileHeader.nBlocks}. If file is 2D use convert2D`,
     );
   }
-
   /* next code will be part of convert 2D instead
-  if(fileHeader.nBlocks>1){
-  for (let i = 0; i < fileHeader.nBlocks; i++) {
-    fids.push(new Block(fidBuffer, fileHeader));
-  }}
-  else {}
-*/
+     if(fileHeader.nBlocks>1){
+     for (let i = 0; i < fileHeader.nBlocks; i++) {
+     fids.push(new Block(fidBuffer, fileHeader));
+     }}
+     else {}
+   */
 
   return { meta: fileHeader, fid, procpar, x };
 }

@@ -11,15 +11,31 @@ Load and parse varian NMR native format.
 
 `$ npm i varian-converter`
 
-## Usage
+## NodeJS
 
-```js
+```javascript
 import {join} from 'path';
 
-import { convert1D } from 'varian-converter';
+import { convert1DFromPath as cvFromPath } from 'varian-converter';
 
-const result = convert1D(join(__dirname, "path/to/dir.fid")) 
+const result = cvFromPath(join(__dirname, "path/to/dir.fid")) 
 ```
+
+Or from zip:
+```javascript
+import {readFileSync} from 'fs';
+import {join} from 'path';
+
+import { convert1DFromZip as cvFromZip } from 'varian-converter';
+
+const arrayBuffer= readFileSync(join(__dirname, "path/to/dir.fid.zip"))
+
+cvFromZip(arrayBuffer).then(r=>console.log(r))
+```
+
+## Browser
+In the browser, just getting the file as File and passing it to convert1DFromZip should do. Same as
+in node it expects an ArrayBuffer, which is what the File constructor returns.
 
 ## License
 
