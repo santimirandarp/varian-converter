@@ -1,3 +1,4 @@
+import { PartialFileList } from 'filelist-from';
 import { IOBuffer } from 'iobuffer';
 import { createFromToArray as createXArray } from 'ml-spectra-processing';
 
@@ -5,12 +6,6 @@ import { Block } from './readBlock';
 import { FileHeader } from './readFileHeader';
 import { Param, getParameters } from './readProcPar';
 import { setEndianFromValue } from './utils';
-
-/** input format */
-export interface VarianFiles {
-  fidB: ArrayBuffer;
-  procparB: ArrayBuffer;
-}
 
 export interface Fid {
   /** first block - header - of the fid file.*/
@@ -27,13 +22,38 @@ export interface Fid {
 /**
  * Converts FileList to object (procpar & fid need to exist).
  * Varian/Agilent store critical information in the procpar file.
- * @param files - File array or Files1D
+ * @param files - `FileList` Or a subset like `PartialFileList`
  * @return Fid Object containing the parsed information from the fid directory
  */
-export function convert1D(files: VarianFiles): Fid {
-  const { fidB, procparB } = files;
+export async function convert1D(
+  fileList: PartialFileList | FileList,
+): Promise<Fid> {
+  let fidB: ArrayBuffer | undefined;
+  let procparB: ArrayBuffer | undefined;
+
+  for (let fb of fileList) {
+    let val = fb.name.toLowerCase();
+    switch (val) {
+      case 'fid': {
+        fidB = await fb.arrayBuffer();
+        break;
+      }
+      case 'procpar': {
+        procparB = await fb.arrayBuffer();
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  if (!fidB || !procparB) {
+    /*check that files were found*/
+    throw new RangeError("fidB and/or procparB not found in 'zip'");
+  }
 
   let fidBuffer = new IOBuffer(fidB);
+
   setEndianFromValue(fidBuffer); /* some files may use big endian */
 
   const fileHeader = new FileHeader(fidBuffer);

@@ -33,7 +33,7 @@ describe('read data blocks for different data types', () => {
 
   it('int32', () => {
     const int = readFileSync(
-      join(__dirname, '../../data/2-Ketobutyric acid_noesy.fid/fid'),
+      join(__dirname, '../../data/2-Ketobutyric_acid_noesy.fid/fid'),
     );
     let bufferInt = new IOBuffer(int);
     setEndianFromValue(bufferInt);

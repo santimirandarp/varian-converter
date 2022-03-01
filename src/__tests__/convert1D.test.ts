@@ -1,33 +1,41 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { convert1DFromDir } from '../convert1DFromDir';
-import { convert1DFromZip } from '../convert1DFromZip';
+import {
+  fileListFromZip as fromZip,
+  fileListFromPath as fromPath,
+} from 'filelist-from';
 
-describe('convert fid file for protons', () => {
-  it('proton.fid', () => {
+import { convert1D } from '../convert1D';
+
+describe('convert fid directory', () => {
+  //first non zipped directory
+  it('proton.fid', async () => {
+    //get the fid directory
     const base = join(__dirname, '../../data/proton.fid');
-    const result = convert1DFromDir(base);
+    // convert the filelist returned by fromPath
+    const result = await convert1D(fromPath(base));
+    // test some properties of the main object
     expect(Object.keys(result.meta)).toHaveLength(9);
     expect(Object.keys(result.fid)).toHaveLength(10);
+    expect(result.procpar).toHaveLength(499);
+    expect(result.x).toHaveLength(result.meta.np / 2);
+    // Snapshot
     expect(result).toMatchSnapshot();
-    const fakeBase = join(__dirname, '../../data/fake.fid');
-    expect(() => convert1DFromDir(fakeBase)).toThrow(
-      'ENOENT: no such file or directory,',
-    );
   });
+
+  //zipped directory
   it('proton.fid.zip', async () => {
     const ab = readFileSync(join(__dirname, '../../data/proton.zip'));
-    const result = await convert1DFromZip(ab);
-    expect(Object.keys(result.meta)).toHaveLength(9);
-    expect(Object.keys(result.fid)).toHaveLength(10);
+    const result = await convert1D(await fromZip(ab));
     expect(result).toMatchSnapshot();
   });
 
+  //2D file
   it('2D zipped file', async () => {
-    const ab = readFileSync(join(__dirname, '../../data/gDQCOSY.fid.zip'));
-    await convert1DFromZip(ab).catch((e) =>
-      expect(e.message).toMatch('nBlocks is 400. If file is 2D use convert2D'),
+    const ab = readFileSync(join(__dirname, '../../data/gDQCOSY.zip'));
+    await convert1D(await fromZip(ab)).catch((e) =>
+      expect(e.message).toMatch('nBlocks is 400. '),
     );
   });
 });
