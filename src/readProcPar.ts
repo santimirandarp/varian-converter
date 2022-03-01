@@ -1,4 +1,6 @@
-import { Lines } from './utils';
+import { IOBuffer } from 'iobuffer';
+
+import { Lined } from './utils';
 /**
  * Read the parameter's first line.
  * Parameters are groups of lines, the first line
@@ -60,7 +62,7 @@ export interface Param extends Header {
  const ps = getParameters(AB);
  ```
  */
-export function getParameters(buffer: ArrayBuffer): Param[] {
+export function getParameters(buffer: ArrayBuffer | Buffer): Param[] {
   /*
      Each parameter is thought as 3 blocks:
      ```
@@ -72,9 +74,9 @@ export function getParameters(buffer: ArrayBuffer): Param[] {
      FB could be multiple lines.
    */
   let params: Param[] = [];
-  let lines = new Lines(
-    Buffer.from(buffer),
-  ); /*split file by lines, store in array*/
+  let io = new IOBuffer(buffer);
+  let lines = new Lined(io.readChars(io.length));
+  /*split file by lines, store in array*/
 
   while (lines.offset < lines.length - 1) {
     /* array of vals for current parameter.*/
@@ -90,16 +92,16 @@ export function getParameters(buffer: ArrayBuffer): Param[] {
     if (header.basicType === 1) {
       // basicType=0 leaves values=[ ]
       /* real num, single line */
-      const valuesRaw = line2.split(' ').slice(1); //0 is numOfLines
+      const valuesRaw = line2.split(' ').slice(1); //0 is numOfLined
       values = valuesRaw.map((n) => parseFloat(n));
     } else if (header.basicType === 2) {
       /* string */
       values = line2.split('"').slice(1, 2); /* split on "s */
-      let numOfLines = parseInt(line2.split(' ')[0], 10);
+      let numOfLined = parseInt(line2.split(' ')[0], 10);
       /* strings may have multiple lines */
-      while (numOfLines > 1) {
+      while (numOfLined > 1) {
         values.push(lines.readLine().split('"')[1]);
-        numOfLines--;
+        numOfLined--;
         /* if line 2 has NOF=3, we read 2 more i.e NOF=3, NOF=2.
            First (line2) was read before */
       }
@@ -126,4 +128,6 @@ export function getParameters(buffer: ArrayBuffer): Param[] {
   }
   return params;
 }
-/* [init.h]:https://github.com/OpenVnmrJ/OpenVnmrJ/blob/master/src/vnmr/init.h#L16 */
+/**
+ * [init.h]:https://github.com/OpenVnmrJ/OpenVnmrJ/blob/master/src/vnmr/init.h#L16
+ */

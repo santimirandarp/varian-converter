@@ -11,6 +11,10 @@ describe('convert fid file for protons', () => {
     expect(Object.keys(result.meta)).toHaveLength(9);
     expect(Object.keys(result.fid)).toHaveLength(10);
     expect(result).toMatchSnapshot();
+    const fakeBase = join(__dirname, '../../data/fake.fid');
+    expect(() => convert1DFromDir(fakeBase)).toThrow(
+      'ENOENT: no such file or directory,',
+    );
   });
   it('proton.fid.zip', async () => {
     const ab = readFileSync(join(__dirname, '../../data/proton.zip'));

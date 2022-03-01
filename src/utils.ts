@@ -6,15 +6,15 @@ import { IOBuffer } from 'iobuffer';
  * @return status flags object
  */
 export class Status {
-  /** - 0x1 indicates the presence of data */
+  /** - 0x1 data (0 no data) */
   public storesData: boolean;
-  /** 0x2 would indicate "spectrum" (as opposed to "FID") */
+  /** 0x2 "spectrum" (0 "FID") */
   public isSpectrum: boolean;
-  /** 0x4 indicates 32-bit (as opposed to 16-bit) data */
+  /** 0x4 32-bit (0 16-bit) data */
   public isInt32: boolean;
-  /** 0x8 indicates (32-bit, IEEE format) floating point data (**then bit 2 is irrelevant**) */
+  /** 0x8 32-bit, IEEE format. If set **bit 2 is irrelevant**. */
   public isFloat32: boolean;
-  /** 0x10 indicates complex (as opposed to real) data */
+  /** 0x10 complex (0 real) data */
   public isComplex: boolean;
   /** 0x20 indicates hypercomplex data (transformed nD data only) */
   public isHypercomplex: boolean;
@@ -27,10 +27,16 @@ export class Status {
       throw new Error('No data stored in file. Exiting...');
     }
     this.isSpectrum = (status & 0x2) !== 0;
+    if (this.isSpectrum) {
+      throw new Error('Script only analyzes FIDs. Found spectrum.');
+    }
     this.isInt32 = (status & 0x4) !== 0;
     this.isFloat32 = (status & 0x8) !== 0;
     this.isComplex = (status & 0x10) !== 0;
     this.isHypercomplex = (status & 0x20) !== 0;
+    if (this.isHypercomplex) {
+      throw new Error('Script does not analyze hypercomplex data (yet).');
+    }
     this.isBaselineCorrected = (status & 0x40) !== 0;
   }
 }
@@ -189,39 +195,32 @@ export class AppDetails {
   }
 }
 
-export interface LinesOpts {
-  /** end of line,
-   * @default '\n'
-   */
-  eol: string;
-  /** buffer offset,
-    @default 0
-   */
-  offset: number;
+export interface LinedOpts {
+  eol?: string /** end of line, @default '\n' */;
+  offset?: number /** buffer offset, @default 0 */;
 }
-/** Utility to read read a line without need of
- * keeping track of the offset
- * @param buffer - the file as a buffer
- * @param [options] - As an object, default is `{eol:'\n', offset:0}`
+/** Split data in lines and read lines
+ * @param string - The file as a string.
+ * @param [options] - As an object. @default `{eol:'\n', offfset:0}`
+ * @param [options.eol] - End of line as string. @default `'\n'`
+ * @param [options.offset] - Array's index where to start reading. @default `0`
  */
-export class Lines {
-  /** Array of lines splitted at the End Of Line, default is `'\n'` */
+export class Lined {
+  /** Array of lines splitted at `options.eol` */
   public lines: string[];
   /** Number of lines */
   public length: number;
-  /** Initial offset where you'll start reading lines. Default is 0 */
+  /** where to start reading lines. See `options.offset`. */
   public offset: number;
-  /** end of line, as a string and not using regex */
+  /** end of line as in `options.eol` */
   public eol: string;
 
-  public constructor(
-    buffer: Buffer,
-    options: LinesOpts = { eol: '\n', offset: 0 },
-  ) {
-    const { eol, offset } = options;
+  public constructor(data: string, options: LinedOpts = {}) {
+    const { eol = '\n', offset = 0 } = options;
+
     this.eol = eol;
-    this.lines = buffer.toString().split(this.eol);
     this.offset = offset;
+    this.lines = data.split(this.eol);
     this.length = this.lines.length;
   }
   /* returns line at offset and updates offset +1 */

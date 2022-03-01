@@ -2,29 +2,18 @@ import { fileListFromZip } from 'filelist-from';
 
 import { convert1D, Fid } from './convert1D';
 
-/** modification time in milliseconds */
-export type MTimeMS = number;
-
-/** File interface for files loaded into the program */
-export interface File {
-  name: string;
-  webkitRelativePath: string;
-  lastModified: Date | MTimeMS;
-  size: number;
-  text: () => Promise<string>;
-  arrayBuffer: () => Promise<ArrayBuffer>;
-}
-
 /** Parses the Fid zipped files to an object representing all unzipped data
  * @param zip - array buffered zip file
  * @return conversion object
  * use either in browser or node js in any case, pass an ArrayBuffer.
  */
+type FileSubset = Omit<File, 'slice' | 'stream' | 'type'>;
+
 export async function convert1DFromZip(zip: ArrayBuffer): Promise<Fid> {
   let fidB: ArrayBuffer | undefined;
   let procparB: ArrayBuffer | undefined;
 
-  const fileList: File[] = await fileListFromZip(zip);
+  const fileList: FileSubset[] = await fileListFromZip(zip);
 
   for (let fb of fileList) {
     let val = fb.name.toLowerCase();
