@@ -5,22 +5,66 @@
 [![Test coverage][codecov-image]][codecov-url]
 [![npm download][download-image]][download-url]
 
-Load and parse varian NMR native format.
+Parse varian NMR native format in JS.
+
+It returns an object representing all the parsed data (see the [result blueprint](#blueprint)).
 
 ## Installation
 
-`$ npm i varian-converter`
+`npm i varian-converter filelist-from`
 
-## Usage
+## Example of use in Browser
 
-```js
+The user may upload:
+
+* a zip file with the fid directory compressed
+* a fid directory 
+
+
+Check the [example folder](https://github.com/cheminfo/varian-converter/example) to see an example for the browser. The idea is to upload the files using `<input>` and it retrieves a FileList that can be handed to varian-converter.
+
+## NodeJS
+
+In Node we have access to the system files through the filesystem module (loaded in `fromPath`). Instead of the onchange event system we use `readFileSync`:
+
+```javascript
 import {join} from 'path';
+import {readFileSync} from 'fs';
+import {fileListFromZip as fromZip} from 'filelist-from';
+import { convert1D as cv } from 'varian-converter';
 
-import { convert1D } from 'varian-converter';
-
-const result = convert1D(join(__dirname, "path/to/dir.fid")) 
+const zipBuffer = readFileSync(join(__dirname,"path/to/file.zip"));
+fromZip(zipBuffer)
+  .then(fileList=>cv(fileList))
+  .then(result=>console.log(result))
+  .catch(e=>console.log(e))
 ```
 
+If we prefer to load the `<directory>.fid` (no compression), we can also do it:
+
+```javascript
+import {join} from 'path';
+import {fileListFromPath as fromPath} from 'filelist-from';
+import { convert1D as cv } from 'varian-converter';
+
+const fileList = fromPath(join(__dirname,"path/to/dir.fid"))
+cv(fileList)
+  .then(result=>console.log(result))
+  .catch(e=>console.log(e))
+```
+
+## Blueprint
+
+`convert1D` returns an object with the following keys:
+
+```javascript
+{
+  meta: <object fid metadata (number types, length in bytes etc)>,
+  procpar: <object of experiment settings and params>,
+  fid: {data:[],...} | [{data:[],..}, {data:[],..},...]
+  x: <float64Array of time values>
+}
+```
 ## License
 
 [MIT](./LICENSE)

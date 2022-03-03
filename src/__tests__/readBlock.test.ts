@@ -3,29 +3,57 @@ import { join } from 'path';
 
 import { IOBuffer } from 'iobuffer';
 
-import { Block } from '../readBlock';
+import { BodyData, Block } from '../readBlock';
 import { FileHeader } from '../readFileHeader';
 import { setEndianFromValue } from '../utils';
 
-const file = readFileSync(join(__dirname, '../../data/proton.fid/fid'));
+describe('read data blocks for different data types', () => {
+  it('float32', () => {
+    const float = readFileSync(join(__dirname, '../../data/proton.fid/fid'));
+    let bufferFloats = new IOBuffer(float);
+    setEndianFromValue(bufferFloats);
+    let fh = new FileHeader(bufferFloats);
 
-let buffer = new IOBuffer(file);
-
-setEndianFromValue(buffer);
-let fh = new FileHeader(buffer);
-
-test('read data block', () => {
-  buffer.offset = 32;
-  const block = new Block(buffer, fh);
-  expect(block).toMatchObject({
-    scale: 0,
-    status: {
-      storesData: true,
-      isSpectrum: false,
-      isFloat32: true,
-    },
-    index: 1,
-    ctCount: 160,
+    bufferFloats.offset = 32;
+    const block = new Block(bufferFloats, fh);
+    expect(block).toMatchObject({
+      scale: 0,
+      status: {
+        storesData: true,
+        isSpectrum: false,
+        isFloat32: true,
+      },
+      index: 1,
+      ctCount: 160,
+    });
+    const data = block.data as BodyData;
+    expect(data.re).toHaveLength(fh.np / 2);
+    expect(data.im).toHaveLength(fh.np / 2);
   });
-  expect(block.data).toHaveLength(65536);
+
+  it('int32', () => {
+    const int = readFileSync(
+      join(__dirname, '../../data/2-Ketobutyric_acid_noesy.fid/fid'),
+    );
+    let bufferInt = new IOBuffer(int);
+    setEndianFromValue(bufferInt);
+    let fh = new FileHeader(bufferInt);
+
+    bufferInt.offset = 32;
+    const block = new Block(bufferInt, fh);
+    expect(block).toMatchObject({
+      scale: 0,
+      status: {
+        storesData: true,
+        isSpectrum: false,
+        isInt32: true,
+        isFloat32: false,
+      },
+      index: 1,
+      ctCount: 64,
+    });
+    const data = block.data as BodyData;
+    expect(data.re).toHaveLength(fh.np / 2);
+    expect(data.im).toHaveLength(fh.np / 2);
+  });
 });

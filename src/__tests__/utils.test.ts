@@ -3,12 +3,15 @@ import { join } from 'path';
 
 import { IOBuffer } from 'iobuffer';
 
-import { setEndianFromValue, FileStatus, Lines } from '../utils';
+import { setEndianFromValue, FileStatus, Lined } from '../utils';
 
 const fid = readFileSync(join(__dirname, '../../data/proton.fid/fid'));
-const procPar = readFileSync(join(__dirname, '../../data/proton.fid/procpar'));
+const procpar = new IOBuffer(
+  readFileSync(join(__dirname, '../../data/proton.fid/procpar')),
+);
 
 const fidBuffer = new IOBuffer(fid);
+const procparString = procpar.readChars(procpar.length);
 
 test('Read File Status Bits', () => {
   /*
@@ -51,9 +54,9 @@ test('Infer endianness from values', () => {
   expect(initOffset).toBe(newOffset);
 });
 
-test('Read NMR Procedure Parameters Lines', () => {
+test('read single and multiple lines', () => {
   /* pass the procpar file as a buffer object */
-  const lines = new Lines(procPar, { offset: 0, eol: '\n' });
+  const lines = new Lined(procparString, { offset: 0, eol: '\n' });
   /* check that it gets the basic set up right */
   expect(lines).toHaveLength(1543);
   expect(lines.offset).toBe(0);
@@ -63,5 +66,10 @@ test('Read NMR Procedure Parameters Lines', () => {
   lines.offset = 3;
   const fL = lines.readLine();
   expect(fL.split(' ')[0]).toBe('dmfwet');
+  expect(lines.offset).toBe(4);
+
+  lines.offset = 0;
+  const fLs = lines.readLines(4);
+  expect(fLs[fLs.length - 1].split(' ')[0]).toBe('dmfwet');
   expect(lines.offset).toBe(4);
 });

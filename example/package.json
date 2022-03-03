@@ -1,0 +1,18 @@
+{
+  "name": "varian-converter-example",
+  "scripts": {
+    "start": "npm i && npx webpack && node server.js"
+  },
+  "devDependencies": {
+    "webpack": "^5.69.1",
+    "webpack-cli": "^4.9.2"
+  },
+  "dependencies": {
+    "express": "^4.17.3",
+    "filelist-from": "^0.2.2",
+    "iobuffer": "^5.1.0",
+    "ml-spectra-processing": "^11.0.0",
+    "varian-converter": "^0.1.0"
+  }
+}
+
