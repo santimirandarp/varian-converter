@@ -57,7 +57,7 @@ cv(fileList)
 
 `convert1D` returns an object with the following keys:
 
-```
+```javascript
 {
   meta: <object fid metadata (number types, length in bytes etc)>,
   procpar: <object of experiment settings and params>,
