@@ -27,7 +27,7 @@ Check the [example folder](https://github.com/cheminfo/varian-converter/example)
 
 In Node we have access to the system files through the filesystem module (loaded in `fromPath`). Instead of the onchange event system we use `readFileSync`:
 
-```
+```javascript
 import {join} from 'path';
 import {readFileSync} from 'fs';
 import {fileListFromZip as fromZip} from 'filelist-from';
