@@ -7,7 +7,7 @@
 
 Parse varian NMR native format in JS.
 
-It returns an object representing all the parsed data (see the [result blueprint][#Blueprint]).
+It returns an object representing all the parsed data (see the [result blueprint](#blueprint)).
 
 ## Installation
 
@@ -21,8 +21,7 @@ The user may upload:
 * a fid directory 
 
 
-Check the **example** folder to see an example for the browser. The idea is to upload the files using
-`<input>` and it retrieves a FileList that can be handed to varian-converter.
+Check the [example folder](https://github.com/cheminfo/varian-converter/example) to see an example for the browser. The idea is to upload the files using `<input>` and it retrieves a FileList that can be handed to varian-converter.
 
 ## NodeJS
 
