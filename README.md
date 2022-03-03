@@ -7,53 +7,26 @@
 
 Parse varian NMR native format in JS.
 
+It returns an object representing all the parsed data (see the [result blueprint][#Blueprint]).
+
 ## Installation
 
 `npm i varian-converter filelist-from`
 
 ## Example of use in Browser
 
-The user may upload files using an `<input>` element, and hand those to varian-convert. This returns an object representing all the parsed data (see the [result blueprint][#Blueprint]).
+The user may upload:
 
-The `index.html`
-```html
-<!DOCTYPE html>
-<html>
-<input type='file' webkitdirectory mozdirectory directory placeholder='load files...'/>
-<script src="./bundle.js"></script>
-</html>
-```
-Notice `main.js` or `main.ts` has to be bundled `bundle.js`.
+* a zip file with the fid directory compressed
+* a fid directory 
 
-* JS for _zipped_ files: `main.js` 
-```javascript
-import {join} from 'path';
-import {fileListFromZip as fromZip} from 'filelist-from';
-import { convert1D as cv } from 'varian-converter';
 
-const input = document.getElementById('input');
-input.onchange = async function (){
- const filesList = await fromZip(input.files);
- console.log(cv(fileList));
- //do stuff
- return;
-}
-```
-Or a standard _directory_ `<directory>.fid`:
-```
-import {join} from 'path';
-import { convert1D as cv } from 'varian-converter';
+Check the **example** folder to see an example for the browser. The idea is to upload the files using
+`<input>` and it retrieves a FileList that can be handed to varian-converter.
 
-const input = document.getElementById('input');
-input.onchange = async function (){
- const fileList = input.files;
- console.log(cv(fileList));
- return;
-}
-```
 ## NodeJS
 
-In Node we have access to the system files through the filesystem module (loaded in `fromPath`). Instead of the event system we use `readFileSync`:
+In Node we have access to the system files through the filesystem module (loaded in `fromPath`). Instead of the onchange event system we use `readFileSync`:
 
 ```
 import {join} from 'path';
@@ -61,8 +34,11 @@ import {readFileSync} from 'fs';
 import {fileListFromZip as fromZip} from 'filelist-from';
 import { convert1D as cv } from 'varian-converter';
 
-const zipBuffer = readFileSync("path/to/file.zip");
-fromZip(zipBuffer).then(r=>console.log(cv(fileList)))
+const zipBuffer = readFileSync(join(__dirname,"path/to/file.zip"));
+fromZip(zipBuffer)
+  .then(fileList=>cv(fileList))
+  .then(result=>console.log(result))
+  .catch(e=>console.log(e))
 ```
 
 If we prefer to load the `<directory>.fid` (no compression), we can also do it:
@@ -72,11 +48,24 @@ import {join} from 'path';
 import {fileListFromPath as fromPath} from 'filelist-from';
 import { convert1D as cv } from 'varian-converter';
 
-const fileList = fromPath("path/to/dir.fid");
-const result = cv(fileList);
+const fileList = fromPath(join(__dirname,"path/to/dir.fid"))
+cv(fileList)
+  .then(result=>console.log(result))
+  .catch(e=>console.log(e))
 ```
 
 ## Blueprint
+
+`convert1D` returns an object with the following keys:
+
+```
+{
+  meta: <object fid metadata (number types, length in bytes etc)>,
+  procpar: <object of experiment settings and params>,
+  fid: {data:[],...} | [{data:[],..}, {data:[],..},...]
+  x: <float64Array of time values>
+}
+```
 ## License
 
 [MIT](./LICENSE)
