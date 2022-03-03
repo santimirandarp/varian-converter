@@ -24,6 +24,17 @@ describe('convert fid directory', () => {
     expect(result).toMatchSnapshot();
   });
 
+  //missing fid
+  it('missing.fid', async () => {
+    //get the fid
+    const base = join(__dirname, '../../data/missing.fid');
+    // convert the filelist returned by fromPath
+    // test some properties of the main object
+    convert1D(fromPath(base)).catch((e) =>
+      expect(e.message).toMatch('fidB and/or '),
+    );
+  });
+
   //zipped directory
   it('proton.fid.zip', async () => {
     const ab = readFileSync(join(__dirname, '../../data/proton.zip'));
