@@ -30,7 +30,7 @@ describe('convert fid directory', () => {
     const base = join(__dirname, '../../data/missing.fid');
     // convert the filelist returned by fromPath
     // test some properties of the main object
-    convert1D(fromPath(base)).catch((e) =>
+    await convert1D(fromPath(base)).catch((e) =>
       expect(e.message).toMatch('fidB and/or '),
     );
   });
