@@ -197,47 +197,47 @@ export class AppDetails {
 
 export interface LinedOpts {
   eol?: string /** end of line, @default '\n' */;
-  offset?: number /** buffer offset, @default 0 */;
+  index?: number /** buffer index, @default 0 */;
 }
 /** Split data in lines and read lines
  * @param string - The file as a string.
  * @param [options] - As an object. @default `{eol:'\n', offfset:0}`
  * @param [options.eol] - End of line as string. @default `'\n'`
- * @param [options.offset] - Array's index where to start reading. @default `0`
+ * @param [options.index] - Array's index where to start reading. @default `0`
  */
 export class Lined {
   /** Array of lines splitted at `options.eol` */
   public lines: string[];
   /** Number of lines */
   public length: number;
-  /** where to start reading lines. See `options.offset`. */
-  public offset: number;
+  /** where to start reading lines. See `options.index`. */
+  public index: number;
   /** end of line as in `options.eol` */
   public eol: string;
 
   public constructor(data: string, options: LinedOpts = {}) {
-    const { eol = '\n', offset = 0 } = options;
+    const { eol = '\n', index = 0 } = options;
 
     this.eol = eol;
-    this.offset = offset;
+    this.index = index;
     this.lines = data.split(this.eol);
     this.length = this.lines.length;
   }
-  /* returns line at offset and updates offset +1 */
+  /* returns line at index and updates index +1 */
   public readLine(): string {
-    if (this.offset >= this.length) {
-      /* check offset isn't off the possible offsets */
+    if (this.index >= this.length) {
+      /* check index isn't off the possible indexs */
       throw new Error(
-        `Last index is ${this.length - 1}. Current index ${this.offset}.`,
+        `Last index is ${this.length - 1}. Current index ${this.index}.`,
       );
     }
     /* because lines comes from toString() is has to be a string[] */
-    return this.lines[this.offset++];
+    return this.lines[this.index++];
   }
   public readLines(n: number): string[] {
-    /* returns n lines from offset to offset+n-1 */
-    const selectedLines = this.lines.slice(this.offset, this.offset + n);
-    this.offset += n;
+    /* returns n lines from index to index+n-1 */
+    const selectedLines = this.lines.slice(this.index, this.index + n);
+    this.index += n;
     return selectedLines;
   }
 }
