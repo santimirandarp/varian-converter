@@ -44,7 +44,7 @@ export class FileHeader {
     this.nBlockHeaders = buffer.readInt32();
   }
 
-  /** tell how the code is reading the data */
+  /* tell how the code is reading the data
   public explain(): string {
     const { isSpectrum, isFloat32, isInt32 } = this.status;
     let known = [
@@ -59,4 +59,5 @@ export class FileHeader {
     known.push(`Datapoints are ${dataType}`);
     return known.join('\n');
   }
+*/
 }
