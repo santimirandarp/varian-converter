@@ -114,10 +114,10 @@ export function getBlockBody(
 
   let traces: BodyData[] = [];
 
+  let t = 0;
   let i = 0; //typed arrays do not have push/pop/etc methods
-
   if (isFloat32) {
-    for (let t = 0; t < nTraces; t++) {
+    for (; t < nTraces; t++) {
       let data = { re: new Float32Array(np / 2), im: new Float32Array(np / 2) };
       for (; i < np; i += 2) {
         data.re[i >>> 1] = buffer.readFloat32();
@@ -126,21 +126,21 @@ export function getBlockBody(
       traces[t] = data;
     }
   } else if (isInt32) {
-    for (let t = 0; t < nTraces; t++) {
+    for (; t < nTraces; t++) {
       let data = { re: new Int32Array(np / 2), im: new Int32Array(np / 2) };
       for (; i < np; i += 2) {
-        data.re[i >>> 1] = buffer.readFloat32();
-        data.im[i >>> 1] = buffer.readFloat32();
+        data.re[i >>> 1] = buffer.readInt32();
+        data.im[i >>> 1] = buffer.readInt32();
       }
       traces[t] = data;
     }
   } else {
     /* isInt16 */
-    for (let t = 0; t < nTraces; t++) {
+    for (; t < nTraces; t++) {
       let data = { re: new Int16Array(np / 2), im: new Int16Array(np / 2) };
       for (; i < np; i += 2) {
-        data.re[i >>> 1] = buffer.readFloat32();
-        data.im[i >>> 1] = buffer.readFloat32();
+        data.re[i >>> 1] = buffer.readInt16();
+        data.im[i >>> 1] = buffer.readInt16();
       }
       traces[t] = data;
     }
