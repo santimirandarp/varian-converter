@@ -44,12 +44,8 @@ describe('read data blocks for different data types', () => {
     expect(block).toMatchObject({
       scale: 0,
       status: {
-        storesData: true,
-        isSpectrum: false,
         isInt32: true,
-        isFloat32: false,
       },
-      index: 1,
       ctCount: 64,
     });
     const data = block.data as BodyData;

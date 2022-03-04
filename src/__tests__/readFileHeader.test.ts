@@ -9,27 +9,18 @@ import { setEndianFromValue } from '../utils';
 const file = readFileSync(join(__dirname, '../../data/proton.fid/fid'));
 let buffer = new IOBuffer(file);
 
-describe('read the file header', () => {
-  it('cross check values in header', () => {
-    setEndianFromValue(buffer);
-    const fileHeader = new FileHeader(buffer);
-    const {
-      eBytes,
-      np,
-      tBytes,
-      nTraces,
-      bBytes,
-      nBlockHeaders,
-      status: { isFloat32 },
-    } = fileHeader;
+test('cross check values in header', () => {
+  setEndianFromValue(buffer);
+  const fh = new FileHeader(buffer);
 
-    const numberOfBytesInTrace = eBytes * np;
-    const numberOfBytesInDataBlock =
-      numberOfBytesInTrace * nTraces + nBlockHeaders * 28;
+  const numberOfBytesInTrace = fh.eBytes * fh.np;
+  const numberOfBytesInDataBlock =
+    numberOfBytesInTrace * fh.nTraces + fh.nBlockHeaders * 28;
 
-    expect(numberOfBytesInTrace).toBe(tBytes);
-    expect(numberOfBytesInDataBlock).toBe(bBytes);
-    expect(isFloat32).toBe(true);
-    expect(fileHeader.explain()).toBeDefined();
-  });
+  //check some of the props at random
+  expect(numberOfBytesInTrace).toBe(fh.tBytes);
+  expect(numberOfBytesInDataBlock).toBe(fh.bBytes);
+  expect(fh.status.isFloat32).toBe(true);
+  //and for the test not to take too long, check the rest using snapshot
+  expect(fh).toMatchSnapshot();
 });

@@ -1,24 +1,12 @@
-import { readFileSync } from 'fs';
-import { join } from 'path';
-
 import { IOBuffer } from 'iobuffer';
 
 import { setEndianFromValue, FileStatus, Lined } from '../utils';
-
-const fid = readFileSync(join(__dirname, '../../data/proton.fid/fid'));
-const procpar = new IOBuffer(
-  readFileSync(join(__dirname, '../../data/proton.fid/procpar')),
-);
-
-const fidBuffer = new IOBuffer(fid);
-const procparString = procpar.readChars(procpar.length);
 
 test('Read File Status Bits', () => {
   /*
    * to see how bits are inspected, just invent
    * a number and check the props.
    */
-
   const status = new FileStatus(0b00000110010101);
   /* the number means: stores data, in int32 form,
 and it is complex, etc */
@@ -39,37 +27,37 @@ and it is complex, etc */
   });
 });
 
-test('Infer endianness from values', () => {
-  const initOffset = fidBuffer.offset;
+test('Detect Endianness', () => {
+  let fid1 = new IOBuffer(new Int32Array([400, 500, 40, 4]));
+  let fid2 = new IOBuffer(new Int32Array([400, 500, 40, 2 ** 25]));
 
-  /* uses np value to set the buffer's endian */
-  const report = setEndianFromValue(fidBuffer);
+  fid1.offset = 2; //unexpected, but the function will fix it
 
-  expect(report).toBe('BE');
+  const r1 = setEndianFromValue(fid1);
+  expect(r1).toBe('LE');
+  expect(fid1.offset).toBe(2);
+  expect(fid1.isLittleEndian()).toBe(true);
 
-  expect(fidBuffer.isBigEndian()).toBe(true);
-
-  /* don't want to change the buffer offset */
-  const newOffset = fidBuffer.offset;
-  expect(initOffset).toBe(newOffset);
+  const r2 = setEndianFromValue(fid2);
+  expect(r2).toBe('BE');
+  expect(fid2.offset).toBe(0);
+  expect(fid2.isLittleEndian()).toBe(false);
 });
 
 test('read single and multiple lines', () => {
   /* pass the procpar file as a buffer object */
-  const lines = new Lined(procparString, { offset: 0, eol: '\n' });
+  const testString = `Lorem Ipsum is simply dummy text of\n the printing and \ntypesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown \n printer took a galley of type and scrambled it to make a type specimen book.`;
+  const lines = new Lined(testString);
+
   /* check that it gets the basic set up right */
-  expect(lines).toHaveLength(1543);
-  expect(lines.offset).toBe(0);
+  expect(lines).toHaveLength(4);
+  expect(lines.index).toBe(0);
   expect(lines.eol).toBe('\n');
 
   /* use it to read fourth line */
-  lines.offset = 3;
-  const fL = lines.readLine();
-  expect(fL.split(' ')[0]).toBe('dmfwet');
-  expect(lines.offset).toBe(4);
+  lines.index = 3;
+  expect(lines.readLine()).toMatch(' printer took a galley');
+  expect(lines.index).toBe(4);
 
-  lines.offset = 0;
-  const fLs = lines.readLines(4);
-  expect(fLs[fLs.length - 1].split(' ')[0]).toBe('dmfwet');
-  expect(lines.offset).toBe(4);
+  expect(() => lines.readLine()).toThrow('a');
 });
