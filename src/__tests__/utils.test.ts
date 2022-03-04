@@ -25,11 +25,15 @@ and it is complex, etc */
     isNi: false,
     isNi2: false,
   });
+  expect(()=>new FileStatus(0b0)).toThrow("No data stored");
+  expect(()=>new FileStatus(0b11)).toThrow("Script only analyzes");
+  expect(()=>new FileStatus(0b1100001)).toThrow("Script does not ");
 });
 
 test('Detect Endianness', () => {
   let fid1 = new IOBuffer(new Int32Array([400, 500, 40, 4]));
   let fid2 = new IOBuffer(new Int32Array([400, 500, 40, 2 ** 25]));
+  let fid3 = new IOBuffer(new Int32Array([400, 500, 40, 50]));
 
   fid1.offset = 2; //unexpected, but the function will fix it
 
@@ -42,6 +46,8 @@ test('Detect Endianness', () => {
   expect(r2).toBe('BE');
   expect(fid2.offset).toBe(0);
   expect(fid2.isLittleEndian()).toBe(false);
+  
+  expect(()=>setEndianFromValue(fid3)).toThrow("Unexpected value of")
 });
 
 test('read single and multiple lines', () => {
