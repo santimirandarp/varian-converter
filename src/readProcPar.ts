@@ -78,17 +78,17 @@ export function getParameters(buffer: ArrayBuffer | Buffer): Param[] {
   let lines = new Lined(io.readChars(io.length));
   /*split file by lines, store in array*/
 
-  while (lines.offset < lines.length - 1) {
+  while (lines.index < lines.length - 1) {
     /* array of vals for current parameter.*/
     let values: number[] | string[] = [];
 
     /* enumerables are other values from the last block */
     let enumerables: string[] = [];
 
-    const header = new Header(lines.readLine()); /* offset is now 1 */
+    const header = new Header(lines.readLine()); /* index is now 1 */
 
     /* 1st block may be multiline */
-    const line2 = lines.readLine(); /*offset 2*/
+    const line2 = lines.readLine(); /*index 2*/
     if (header.basicType === 1) {
       // basicType=0 leaves values=[ ]
       /* real num, single line */

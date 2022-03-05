@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`cross check values in header 1`] = `
+FileHeader {
+  "bBytes": 262172,
+  "eBytes": 4,
+  "nBlockHeaders": 1,
+  "nBlocks": 1,
+  "nTraces": 1,
+  "np": 65536,
+  "status": FileStatus {
+    "is3D": false,
+    "isAcqPar": true,
+    "isBaselineCorrected": true,
+    "isComplex": false,
+    "isFloat32": true,
+    "isHypercomplex": false,
+    "isInt32": false,
+    "isNf": false,
+    "isNi": false,
+    "isNi2": false,
+    "isNp": false,
+    "isSecondFT": false,
+    "isSpectrum": false,
+    "isTransformed": false,
+    "storesData": true,
+  },
+  "tBytes": 262144,
+  "version": AppDetails {
+    "softwareVersion": 0,
+    "typeOfFile": Object {
+      "data3DFile": false,
+      "dataFile": false,
+      "fidFile": false,
+    },
+    "vendorIdStatus": Object {
+      "ipFileId": false,
+      "ipVendorId": false,
+      "ipVers": false,
+      "isBru": false,
+      "isJeol": false,
+      "isMag": false,
+      "isMakeFid": false,
+      "isOx": false,
+      "isQOne": false,
+      "isVar": false,
+    },
+  },
+}
+`;

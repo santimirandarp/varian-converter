@@ -18,4 +18,6 @@ test('parsed procpar', () => {
 
   /* test a single parameter value */
   expect(result[1]).toHaveProperty('name', 'dmfwet');
+  /* test rest with snapshot */
+  expect(result).toMatchSnapshot();
 });
