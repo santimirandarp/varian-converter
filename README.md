@@ -13,19 +13,18 @@ It returns an object representing all the parsed data (see the [result blueprint
 
 `npm i varian-converter filelist-from`
 
-## Single Directory as FileList
-
+## Usage
 The `convert1D` function expects a FileList. FileList is returned by the browser when uploading a directory, and by jsZip library when Zips ([Browser Example](#example-of-use-in-browser)). To be use in NodeJS see [NodeJS Example](#example-of-use-in-nodejs). There are normally 4 files in a 1D fid directory:
 1. fid
 2. procpar
 3. text
 4. log
 
-\1. and 2. must exist or `convert1D` will error out.
+1 and 2 must exist or `convert1D` will error out.
 
-For passing multiple FIDs the `convert1D` should run in a loop, each time passing a FileList corresponding to the 1D (_fid_ and _procpar_ must exist), pushing the result object elsewhere.
+For passing multiple directories the `convert1D` should run in a loop, each time passing a FileList corresponding to the 1D (_fid_ and _procpar_ must exist), pushing the result object elsewhere.
 
-## Example of use in Browser
+### Use in Browser
 
 The user may upload:
 
@@ -33,9 +32,9 @@ The user may upload:
 * a fid directory 
 
 
-Check the [example folder](https://github.com/cheminfo/varian-converter/example) to see an example for the browser. The idea is to upload the files using `<input>` and it retrieves a FileList that can be handed to varian-converter.
+Check the [example folder](https://github.com/cheminfo/varian-converter/tree/main/example) to see an example for the browser. The idea is to upload the files using `<input>` and it retrieves a FileList that can be handed to varian-converter.
 
-## Example of use in NodeJS
+### Use in NodeJS
 
 In Node we have access to the system files through the filesystem module (loaded in `fromPath`). Instead of the onchange event system we use `readFileSync`:
 
