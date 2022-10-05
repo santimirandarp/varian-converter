@@ -7,9 +7,9 @@ import { Lined } from './utils';
  * is like a header, and contains data used to parse next lines
  * Definition is here
  * [OpenVnmrJ][init.h]
- * @param lineIn - header line / first line as a string
+ * @param lineIn - header line / first line
  */
-export class Header {
+export class ParamHeader {
   /** parameter name */
   public name: string;
   public subType: number;
@@ -45,8 +45,8 @@ export class Header {
   }
 }
 
-/* represents a experiment parameter (a setting that is constant in the exp) in the procpar file */
-export interface Param extends Header {
+/* represents a experiment parameter (a setting that is constant in the exp) */
+export interface Param extends ParamHeader {
   /** Values from second Line (but can be multi line) */
   values: string[] | number[];
   /** Values from 'third' Line */
@@ -56,13 +56,10 @@ export interface Param extends Header {
 }
 
 /** Get parameters from the procpar file
- * @param buffer - ArrayBuffer instance. You get this using:
- ```
- const AB = fs.readFileSync('path/to/propar');
- const ps = getParameters(AB);
- ```
+ * @param io - io buffer instance
+ * @returns array of parameter objects stored in file
  */
-export function getParameters(buffer: ArrayBuffer | Buffer): Param[] {
+export function getParameters(io: IOBuffer): Param[] {
   /*
      Each parameter is thought as 3 blocks:
      ```
@@ -74,7 +71,6 @@ export function getParameters(buffer: ArrayBuffer | Buffer): Param[] {
      FB could be multiple lines.
    */
   let params: Param[] = [];
-  let io = new IOBuffer(buffer);
   let lines = new Lined(io.readChars(io.length));
   /*split file by lines, store in array*/
 
@@ -85,23 +81,25 @@ export function getParameters(buffer: ArrayBuffer | Buffer): Param[] {
     /* enumerables are other values from the last block */
     let enumerables: string[] = [];
 
-    const header = new Header(lines.readLine()); /* index is now 1 */
+    const header = new ParamHeader(lines.readLine()); /* index is now 1 */
 
     /* 1st block may be multiline */
     const line2 = lines.readLine(); /*index 2*/
-    if (header.basicType === 1) {
+    if (header.basicType === 0) {
       // basicType=0 leaves values=[ ]
+    } else if (header.basicType === 1) {
       /* real num, single line */
-      const valuesRaw = line2.split(' ').slice(1); //0 is numOfLined
+
+      const valuesRaw = line2.split(' ').slice(1); //0 is numOfLines
       values = valuesRaw.map((n) => parseFloat(n));
     } else if (header.basicType === 2) {
       /* string */
       values = line2.split('"').slice(1, 2); /* split on "s */
-      let numOfLined = parseInt(line2.split(' ')[0], 10);
+      let numOfLines = parseInt(line2.split(' ')[0], 10);
       /* strings may have multiple lines */
-      while (numOfLined > 1) {
+      while (numOfLines > 1) {
         values.push(lines.readLine().split('"')[1]);
-        numOfLined--;
+        numOfLines--;
         /* if line 2 has NOF=3, we read 2 more i.e NOF=3, NOF=2.
            First (line2) was read before */
       }

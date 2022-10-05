@@ -1,4 +1,4 @@
-import { PartialFileList } from 'filelist-from';
+import { FileCollection } from 'filelist-utils';
 import { IOBuffer } from 'iobuffer';
 import { createFromToArray as createXArray } from 'ml-spectra-processing';
 
@@ -7,31 +7,35 @@ import { FileHeader } from './readFileHeader';
 import { Param, getParameters } from './readProcPar';
 import { setEndianFromValue } from './utils';
 
-export interface Fid {
-  /** first block - header - of the fid file.*/
-  meta: FileHeader;
-  /** fid data + metadata */
-  // fids: Block[]|Block; this will likely be used for 2D
-  fid: Block;
-  /** x is the time values. */
-  x: Float64Array;
-  /** parameters set */
-  procpar: Param[];
+/*
+ Code aims to parse the 1D fid file:
+   |  filehead  blockhead  blockdata  blockhead  blockdata ...
+  The file head is "meta", the rest is under "fid".
+*/
+
+/* For more than 1D, fid will be Block[] probably, the rest the same */
+export interface Fid1D {
+  meta: FileHeader /** head of the fid file.*/;
+
+  fid: Block /** fid data + metadata */;
+
+  x: Float64Array /** x is the time values. */;
+
+  procpar: Param[] /** parameters set */;
 }
 
 /**
- * Converts FileList to object (procpar & fid need to exist).
+ * Converts 1D NMRs to object containing all parsed info.
  * Varian/Agilent store critical information in the procpar file.
- * @param files - `FileList` Or a subset like `PartialFileList`
+ * @param fidDir - the fid directory as FileCollection
  * @return Fid Object containing the parsed information from the fid directory
  */
-export async function convert1D(
-  fileList: PartialFileList | FileList,
-): Promise<Fid> {
+export async function convert1D(fidDir: FileCollection): Promise<Fid1D> {
   let fidB: ArrayBuffer | undefined;
   let procparB: ArrayBuffer | undefined;
 
-  for (let fb of fileList) {
+  for (let fb of fidDir) {
+    //get the binary data
     let val = fb.name.toLowerCase();
     switch (val) {
       case 'fid': {
@@ -48,45 +52,44 @@ export async function convert1D(
   }
 
   if (!fidB || !procparB) {
-    /*check that files were found*/
-    throw new RangeError("fidB and/or procparB not found in 'zip'");
+    /* check that files were found */
+    throw new RangeError('fid and procpar must exist.');
   }
 
-  let fidBuffer = new IOBuffer(fidB);
-
+  const fidBuffer = new IOBuffer(fidB);
   setEndianFromValue(fidBuffer); /* some files may use big endian */
-
   const fileHeader = new FileHeader(fidBuffer);
-  const procpar = getParameters(procparB);
+
+  if (fileHeader.nBlocks !== 1) {
+    //multiblocks still to be implemented
+    throw new Error(`found nBlocks ${fileHeader.nBlocks}, but expected 1`);
+  }
+
+  const procpar = getParameters(new IOBuffer(procparB));
 
   /* acquisition time */
-  const at = procpar.filter((par) => par.name === 'at')[0].values[0] as number;
-
-  /* Create the time */
-  const x = createXArray({
-    from: 0,
-    to: at,
-    length: fileHeader.np / 2, //all data seen is complex datapoints
-    distribution: 'uniform',
-  });
-
-  /* read the data block(s) for the fid file */
-  // let fids: Block[]|Block = []; likely used for 2D
-  let fid: Block;
-  if (fileHeader.nBlocks === 1) {
-    fid = new Block(fidBuffer, fileHeader);
-  } else {
-    throw new RangeError(
-      `nBlocks is ${fileHeader.nBlocks}. If file is 2D use convert2D`,
-    );
+  let at: number | string | undefined;
+  for (let par of procpar) {
+    if (par.name === 'at') {
+      at = par.values[0];
+      break;
+    }
   }
-  /* next code will be part of convert 2D instead
-     if(fileHeader.nBlocks>1){
-     for (let i = 0; i < fileHeader.nBlocks; i++) {
-     fids.push(new Block(fidBuffer, fileHeader));
-     }}
-     else {}
-   */
 
-  return { meta: fileHeader, fid, procpar, x };
+  if (typeof at !== 'number') {
+    throw new Error('acquisition time parameter must exist and be a number.');
+  } else {
+    const x = createXArray({
+      //time axis
+      from: 0,
+      to: at,
+      length: fileHeader.np / 2, //all data seen is complex datapoints
+      distribution: 'uniform',
+    });
+
+    /* read the data block(s) for the fid file */
+    const fid = new Block(fidBuffer, fileHeader);
+
+    return { meta: fileHeader, fid, procpar, x };
+  }
 }

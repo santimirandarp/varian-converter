@@ -6,7 +6,7 @@ import { IOBuffer } from 'iobuffer';
 import { FileHeader } from '../readFileHeader';
 import { setEndianFromValue } from '../utils';
 
-const file = readFileSync(join(__dirname, '../../data/proton.fid/fid'));
+const file = readFileSync(join(__dirname, 'data/proton.fid/fid'));
 let buffer = new IOBuffer(file);
 
 test('cross check values in header', () => {

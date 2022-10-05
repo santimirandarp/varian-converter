@@ -1,46 +1,7 @@
 import { IOBuffer } from 'iobuffer';
 
 import { FileHeader } from './readFileHeader';
-import { BlockStatus } from './utils';
-
-/**
- * Mode of data in block
- * Unused bits: `[3, 7, 11, 15]`
- * @param mode flag with mode information
- * @return object storing all flags
- */
-export class ModeOfDataInBlock {
-  public npPhMode: boolean;
-  public npAvMode: boolean;
-  public npPwrMode: boolean;
-  public nfPhMode: boolean;
-  public nfAvMode: boolean;
-  public nfPwrMode: boolean;
-  public niPhMode: boolean;
-  public niAvMode: boolean;
-  public niPwrMode: boolean;
-  public ni2PhMode: boolean;
-  public ni2AvMode: boolean;
-  public ni2PwrMode: boolean;
-  public niPaMode: boolean;
-  public ni2PaMode: boolean;
-  public constructor(mode: number) {
-    this.npPhMode = (mode & 0x1) !== 0;
-    this.npAvMode = (mode & 0x2) !== 0;
-    this.npPwrMode = (mode & 0x4) !== 0;
-    this.nfPhMode = (mode & 0x10) !== 0;
-    this.nfAvMode = (mode & 0x20) !== 0;
-    this.nfPwrMode = (mode & 0x40) !== 0;
-    this.niPhMode = (mode & 0x100) !== 0;
-    this.niAvMode = (mode & 0x200) !== 0;
-    this.niPwrMode = (mode & 0x400) !== 0;
-    this.ni2PhMode = (mode & 0x8) !== 0;
-    this.ni2AvMode = (mode & 0x100) !== 0;
-    this.ni2PwrMode = (mode & 0x2000) !== 0;
-    this.niPaMode = (mode & 0x4000) !== 0;
-    this.ni2PaMode = (mode & 0x8000) !== 0;
-  }
-}
+import { ModeOfDataInBlock, BlockStatus } from './utils';
 
 /** Read the block header (28B) and body */
 export class Block {
@@ -67,7 +28,7 @@ export class Block {
     "nt=1", see Varian NMR News 2001-02-02. */
   public lvl: number; /* level drift correction */
   public tlt: number; /* tilt drift correction */
-  public data: BodyData[] | BodyData;
+  public data: BodyData[]; /* normally will have 1 element, unless multi trace */
   public constructor(
     buffer: IOBuffer,
     fileHeader: FileHeader,
@@ -88,11 +49,12 @@ export class Block {
     this.data = getBlockBody(buffer, fileHeader);
   }
 }
-
-export type AcquiredData = Float32Array | Int32Array | Int16Array;
+/**
+ * The data points seem to be always be imaginary for fids
+ */
 export interface BodyData {
-  re: AcquiredData;
-  im: AcquiredData;
+  re: Float32Array | Int32Array | Int16Array;
+  im: Float32Array | Int32Array | Int16Array;
 }
 
 /**
@@ -104,48 +66,61 @@ export interface BodyData {
 export function getBlockBody(
   buffer: IOBuffer,
   fileHeader: FileHeader,
-): BodyData[] | BodyData {
-  /*[[]] if traces >1, [] if traces=1*/
+): BodyData[] {
+  //body data has just one element if `nTraces===1`
+
   const {
     np,
     nTraces,
     status: { isFloat32, isInt32 },
   } = fileHeader;
 
-  let traces: BodyData[] = [];
-
-  let t = 0;
-  let i = 0; //typed arrays do not have push/pop/etc methods
   if (isFloat32) {
-    for (; t < nTraces; t++) {
-      let data = { re: new Float32Array(np / 2), im: new Float32Array(np / 2) };
-      for (; i < np; i += 2) {
-        data.re[i >>> 1] = buffer.readFloat32();
-        data.im[i >>> 1] = buffer.readFloat32();
-      }
-      traces[t] = data;
-    }
+    //array is overwritten for each trace
+    return dataReader(buffer, nTraces, np, 'readFloat32');
   } else if (isInt32) {
-    for (; t < nTraces; t++) {
-      let data = { re: new Int32Array(np / 2), im: new Int32Array(np / 2) };
-      for (; i < np; i += 2) {
-        data.re[i >>> 1] = buffer.readInt32();
-        data.im[i >>> 1] = buffer.readInt32();
-      }
-      traces[t] = data;
-    }
+    //array is overwritten for each trace
+    return dataReader(buffer, nTraces, np, 'readInt32');
   } else {
-    /* isInt16 */
-    for (; t < nTraces; t++) {
-      let data = { re: new Int16Array(np / 2), im: new Int16Array(np / 2) };
-      for (; i < np; i += 2) {
-        data.re[i >>> 1] = buffer.readInt16();
-        data.im[i >>> 1] = buffer.readInt16();
-      }
-      traces[t] = data;
-    }
+    //int16
+    return dataReader(buffer, nTraces, np, 'readInt16');
   }
-  /* Simplify output for a single spectra (common case) */
-  if (nTraces === 1) return traces[0];
-  return traces;
+}
+
+/**
+ * reduces code duplication
+ * @param buffer, the data
+ * @param nTraces - number of fids
+ * @param np - number of points: real + imaginary
+ * @param readType - to select from IOBuffer
+ */
+function dataReader(
+  buffer: IOBuffer,
+  nTraces: number,
+  np: number,
+  readType: 'readInt16' | 'readInt32' | 'readFloat32',
+) {
+  let fids: BodyData[] = [];
+
+  let fid;
+  if (readType === 'readFloat32') {
+    fid = { re: new Float32Array(np / 2), im: new Float32Array(np / 2) };
+  } else if (readType === 'readInt32') {
+    fid = { re: new Int32Array(np / 2), im: new Int32Array(np / 2) };
+  } else {
+    fid = { re: new Int16Array(np / 2), im: new Int16Array(np / 2) };
+  }
+
+  //`data` array is overwritten internally for each trace, as they all have same number of
+  // datapoints np/2, then we define it only once
+
+  for (let t = 0; t < nTraces; t++) {
+    for (let i = 0; i < np; i += 2) {
+      fid.re[i >>> 1] = buffer[readType]();
+      fid.im[i >>> 1] = buffer[readType]();
+    }
+    fids[t] = fid;
+  }
+
+  return fids;
 }

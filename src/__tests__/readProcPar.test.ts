@@ -1,13 +1,15 @@
 import { readFileSync as rfs } from 'fs';
 import { join } from 'path';
 
+import { IOBuffer } from 'iobuffer';
+
 import { getParameters } from '../readProcPar';
 
-const procpar = rfs(join(__dirname, '../../data/proton.fid/procpar'));
+const procpar = rfs(join(__dirname, 'data/proton.fid/procpar'));
 
 test('parsed procpar', () => {
   /* test if extracts all params */
-  const result = getParameters(procpar);
+  const result = getParameters(new IOBuffer(procpar));
   const nOfParams = 499;
   expect(result).toHaveLength(nOfParams);
 

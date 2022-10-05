@@ -1,5 +1,49 @@
 import { IOBuffer } from 'iobuffer';
 
+/** Set the endianness using eBytes property value. Buffer offset is left unchanged.
+ * From the VnmrJ user manual:
+ * > the byte order in our FIDs is whatever the acquisition CPU (Motorola 68000, 68040,
+ or PowerPC 603) delivers and does NOT depend on the type of host computer.
+ * @param buffer as iobuffer  i.e `new IOBuffer(buffer)`
+ * @return endianness  - String indicating resulting endian.
+ */
+export function setEndianFromValue(buffer: IOBuffer): Endian {
+  buffer.setLittleEndian(); /*is the default but in case user has changed it */
+
+  /* buffer.mark() could be confusing. Just use the current offset. */
+  const initialOffset = buffer.offset;
+  const bits = 32 * 3;
+  /* Get to eBytes */
+  buffer.offset = bits / 8;
+
+  /* If read in the wrong way'd be huge. eBytes must exist. */
+  const readLE = buffer.readInt32();
+  const valsLE = [2, 4];
+  const valsBE = [2 ** 25, 2 ** 26];
+
+  if (valsLE.includes(readLE)) {
+    /* already set */
+  } else if (valsBE.includes(readLE)) {
+    buffer.setBigEndian();
+  } else {
+    throw new Error(`Unexpected value of eBytes (${readLE}). Expect one of
+                    ${valsLE.concat(valsBE).join()}`);
+  }
+
+  buffer.offset = initialOffset;
+
+  /* per IOBuffer defs, if one true the other one is false */
+  const endian = buffer.isBigEndian() ? 'BE' : 'LE';
+
+  return endian;
+}
+export interface LinedOpts {
+  eol?: string /** end of line, @default '\n' */;
+  index?: number /** buffer index, @default 0 */;
+}
+
+/* ------------ Class helpers ----------- */
+
 /**
  * Status from code (code is a number, each bit is a flag)
  * @param status - Status number (flag-like)
@@ -107,42 +151,47 @@ export class FileStatus extends Status {
  */
 export type Endian = 'BE' | 'LE';
 
-/** Set the endianness using eBytes property value. Buffer offset is left unchanged.
- * From the VnmrJ user manual:
- * > the byte order in our FIDs is whatever the acquisition CPU (Motorola 68000, 68040,
- or PowerPC 603) delivers and does NOT depend on the type of host computer.
- * @param buffer as iobuffer  i.e `new IOBuffer(buffer)`
- * @return endianness  - String indicating resulting endian.
+/** Split data in lines and read lines
+ * @param string - The file as a string.
+ * @param [options] - As an object. @default `{eol:'\n', offfset:0}`
+ * @param [options.eol] - End of line as string. @default `'\n'`
+ * @param [options.index] - Array's index where to start reading. @default `0`
  */
-export function setEndianFromValue(buffer: IOBuffer): Endian {
-  buffer.setLittleEndian(); /*is the default but in case user has changed it */
+export class Lined {
+  /** Array of lines splitted at `options.eol` */
+  public lines: string[];
+  /** Number of lines */
+  public length: number;
+  /** where to start reading lines. See `options.index`. */
+  public index: number;
+  /** end of line as in `options.eol` */
+  public eol: string;
 
-  /* buffer.mark() could be confusing. Just use the current offset. */
-  const initialOffset = buffer.offset;
-  const bits = 32 * 3;
-  /* Get to eBytes */
-  buffer.offset = bits / 8;
+  public constructor(data: string, options: LinedOpts = {}) {
+    const { eol = '\n', index = 0 } = options;
 
-  /* If read in the wrong way'd be huge. eBytes must exist. */
-  const readLE = buffer.readInt32();
-  const valsLE = [2, 4];
-  const valsBE = [2 ** 25, 2 ** 26];
-
-  if (valsLE.includes(readLE)) {
-    /* already set */
-  } else if (valsBE.includes(readLE)) {
-    buffer.setBigEndian();
-  } else {
-    throw new Error(`Unexpected value of eBytes (${readLE}). Expect one of
-                    ${valsLE.concat(valsBE).join()}`);
+    this.eol = eol;
+    this.index = index;
+    this.lines = data.split(this.eol);
+    this.length = this.lines.length;
   }
-
-  buffer.offset = initialOffset;
-
-  /* per IOBuffer defs, if one true the other one is false */
-  const endian = buffer.isBigEndian() ? 'BE' : 'LE';
-
-  return endian;
+  /* returns line at index and updates index +1 */
+  public readLine(): string {
+    if (this.index >= this.length) {
+      /* check index isn't off the possible indexs */
+      throw new Error(
+        `Last index is ${this.length - 1}. Current index ${this.index}.`,
+      );
+    }
+    /* because lines comes from toString() is has to be a string[] */
+    return this.lines[this.index++];
+  }
+  public readLines(n: number): string[] {
+    /* returns n lines from index to index+n-1 */
+    const selectedLines = this.lines.slice(this.index, this.index + n);
+    this.index += n;
+    return selectedLines;
+  }
 }
 
 /** Software version, type of file, instrument vendor
@@ -195,49 +244,41 @@ export class AppDetails {
   }
 }
 
-export interface LinedOpts {
-  eol?: string /** end of line, @default '\n' */;
-  index?: number /** buffer index, @default 0 */;
-}
-/** Split data in lines and read lines
- * @param string - The file as a string.
- * @param [options] - As an object. @default `{eol:'\n', offfset:0}`
- * @param [options.eol] - End of line as string. @default `'\n'`
- * @param [options.index] - Array's index where to start reading. @default `0`
+/**
+ * Mode of data in block
+ * Unused bits: `[3, 7, 11, 15]`
+ * @param mode flag with mode information
+ * @return object storing all flags
  */
-export class Lined {
-  /** Array of lines splitted at `options.eol` */
-  public lines: string[];
-  /** Number of lines */
-  public length: number;
-  /** where to start reading lines. See `options.index`. */
-  public index: number;
-  /** end of line as in `options.eol` */
-  public eol: string;
-
-  public constructor(data: string, options: LinedOpts = {}) {
-    const { eol = '\n', index = 0 } = options;
-
-    this.eol = eol;
-    this.index = index;
-    this.lines = data.split(this.eol);
-    this.length = this.lines.length;
-  }
-  /* returns line at index and updates index +1 */
-  public readLine(): string {
-    if (this.index >= this.length) {
-      /* check index isn't off the possible indexs */
-      throw new Error(
-        `Last index is ${this.length - 1}. Current index ${this.index}.`,
-      );
-    }
-    /* because lines comes from toString() is has to be a string[] */
-    return this.lines[this.index++];
-  }
-  public readLines(n: number): string[] {
-    /* returns n lines from index to index+n-1 */
-    const selectedLines = this.lines.slice(this.index, this.index + n);
-    this.index += n;
-    return selectedLines;
+export class ModeOfDataInBlock {
+  public npPhMode: boolean;
+  public npAvMode: boolean;
+  public npPwrMode: boolean;
+  public nfPhMode: boolean;
+  public nfAvMode: boolean;
+  public nfPwrMode: boolean;
+  public niPhMode: boolean;
+  public niAvMode: boolean;
+  public niPwrMode: boolean;
+  public ni2PhMode: boolean;
+  public ni2AvMode: boolean;
+  public ni2PwrMode: boolean;
+  public niPaMode: boolean;
+  public ni2PaMode: boolean;
+  public constructor(mode: number) {
+    this.npPhMode = (mode & 0x1) !== 0;
+    this.npAvMode = (mode & 0x2) !== 0;
+    this.npPwrMode = (mode & 0x4) !== 0;
+    this.nfPhMode = (mode & 0x10) !== 0;
+    this.nfAvMode = (mode & 0x20) !== 0;
+    this.nfPwrMode = (mode & 0x40) !== 0;
+    this.niPhMode = (mode & 0x100) !== 0;
+    this.niAvMode = (mode & 0x200) !== 0;
+    this.niPwrMode = (mode & 0x400) !== 0;
+    this.ni2PhMode = (mode & 0x8) !== 0;
+    this.ni2AvMode = (mode & 0x100) !== 0;
+    this.ni2PwrMode = (mode & 0x2000) !== 0;
+    this.niPaMode = (mode & 0x4000) !== 0;
+    this.ni2PaMode = (mode & 0x8000) !== 0;
   }
 }

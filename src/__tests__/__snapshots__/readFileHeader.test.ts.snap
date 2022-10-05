@@ -28,12 +28,12 @@ FileHeader {
   "tBytes": 262144,
   "version": AppDetails {
     "softwareVersion": 0,
-    "typeOfFile": Object {
+    "typeOfFile": {
       "data3DFile": false,
       "dataFile": false,
       "fidFile": false,
     },
-    "vendorIdStatus": Object {
+    "vendorIdStatus": {
       "ipFileId": false,
       "ipVendorId": false,
       "ipVers": false,

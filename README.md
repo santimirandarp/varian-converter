@@ -5,16 +5,16 @@
 [![Test coverage][codecov-image]][codecov-url]
 [![npm download][download-image]][download-url]
 
-Parse varian NMR native format in JS.
+Parse varian NMR native format.
 
-It returns an object representing all the parsed data (see the [result blueprint](#blueprint)).
+The code currently parses 1-dimensional NMR only.
 
 ## Installation
 
-`npm i varian-converter filelist-from`
+`npm i varian-converter filelist-utils`
 
 ## Usage
-The `convert1D` function expects a FileList. FileList is returned by the browser when uploading a directory, and by jsZip library when Zips ([Browser Example](#example-of-use-in-browser)). To be use in NodeJS see [NodeJS Example](#example-of-use-in-nodejs). There are normally 4 files in a 1D fid directory:
+The `convert1D` function expects a FileCollection. There are normally 4 files in a 1D fid directory:
 1. fid
 2. procpar
 3. text
@@ -22,58 +22,62 @@ The `convert1D` function expects a FileList. FileList is returned by the browser
 
 1 and 2 must exist or `convert1D` will error out.
 
-For passing multiple directories the `convert1D` should run in a loop, each time passing a FileList corresponding to the 1D (_fid_ and _procpar_ must exist), pushing the result object elsewhere.
+`FileCollection`s are returned from the `filelist-utils` package which runs both in NodeJS and the
+browser.
+
+
+For passing multiple directories the `convert1D` should run in a loop, each time passing a FileCollection corresponding to the 1D (_fid_ and _procpar_ must exist), pushing the result object elsewhere.
 
 ### Use in Browser
 
 The user may upload:
 
 * a zip file with the fid directory compressed
-* a fid directory 
+* a fid directory
 
-
-Check the [example folder](https://github.com/cheminfo/varian-converter/tree/main/example) to see an example for the browser. The idea is to upload the files using `<input>` and it retrieves a FileList that can be handed to varian-converter.
+See the **example** folder.
 
 ### Use in NodeJS
 
-In Node we have access to the system files through the filesystem module (loaded in `fromPath`). Instead of the onchange event system we use `readFileSync`:
+* Compressed fid directory
 
 ```javascript
-import {join} from 'path';
-import {readFileSync} from 'fs';
-import {fileListFromZip as fromZip} from 'filelist-from';
+import { join } from 'path';
+import { readFileSync } from 'fs';
+// allows us to load a directory in NodeJS
+import { fileCollectionFromZip } from 'filelist-utils';
 import { convert1D as cv } from 'varian-converter';
 
-const zipBuffer = readFileSync(join(__dirname,"path/to/file.zip"));
-fromZip(zipBuffer)
-  .then(fileList=>cv(fileList))
+const zipBuffer = readFileSync(join(__dirname,"path/to/compressed.fid.zip"));
+fileCollectionFromZip(zipBuffer)
+    .then(fileCollection=>cv(fileCollection))
+    .then(result=>console.log(result))
+    .catch(e=>console.log(e))
+```
+
+* Standard fid directory
+
+```javascript
+import { join } from 'path';
+import { fileCollectionFromPath } from 'filelist-utils';
+import { convert1D as cv } from 'varian-converter';
+
+const fileCollection = fileCollectionFromPath(join(__dirname,"path/to/dir.fid"))
+cv(fileCollection)
   .then(result=>console.log(result))
   .catch(e=>console.log(e))
 ```
 
-If we prefer to load the `<directory>.fid` (no compression), we can also do it:
+## Output
 
-```javascript
-import {join} from 'path';
-import {fileListFromPath as fromPath} from 'filelist-from';
-import { convert1D as cv } from 'varian-converter';
+`convert1D` returns an object with the signature
 
-const fileList = fromPath(join(__dirname,"path/to/dir.fid"))
-cv(fileList)
-  .then(result=>console.log(result))
-  .catch(e=>console.log(e))
-```
-
-## Blueprint
-
-`convert1D` returns an object with the following keys:
-
-```javascript
+```text
 {
-  meta: <object fid metadata (number types, length in bytes etc)>,
-  procpar: <object of experiment settings and params>,
-  fid: {data:[],...} | [{data:[],..}, {data:[],..},...]
-  x: <float64Array of time values>
+  meta: Record<string,any>
+  procpar: Record<string,any>
+  fid: [data1, data2, data3..]
+  x: Float64Array (time values)
 }
 ```
 ## License

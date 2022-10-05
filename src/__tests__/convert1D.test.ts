@@ -1,52 +1,37 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import {
-  fileListFromZip as fromZip,
-  fileListFromPath as fromPath,
-} from 'filelist-from';
+import { fileCollectionFromZip, fileCollectionFromPath } from 'filelist-utils';
 
 import { convert1D } from '../convert1D';
 
 describe('convert fid directory', () => {
-  //first non zipped directory
   it('proton.fid', async () => {
-    //get the fid directory
-    const base = join(__dirname, '../../data/proton.fid');
-    // convert the filelist returned by fromPath
-    const result = await convert1D(fromPath(base));
-    // test some properties of the main object
-    expect(Object.keys(result.meta)).toHaveLength(9);
-    expect(Object.keys(result.fid)).toHaveLength(10);
-    expect(result.procpar).toHaveLength(499);
-    expect(result.x).toHaveLength(result.meta.np / 2);
-    // Snapshot
-    expect(result).toMatchSnapshot();
+    const base = join(__dirname, 'data/proton.fid');
+    const parsed = await convert1D(await fileCollectionFromPath(base));
+
+    expect(Object.keys(parsed)).toHaveLength(4);
+    expect(Object.keys(parsed.meta)).toHaveLength(9);
+    expect(Object.keys(parsed.fid)).toHaveLength(10);
+    expect(parsed.procpar).toHaveLength(499);
+    expect(parsed.x).toHaveLength(parsed.meta.np / 2);
+
+    expect(parsed).toMatchSnapshot();
   });
 
-  //missing fid
-  it('missing.fid', async () => {
+  it('missing "fid" in dir should error out', async () => {
     //get the fid
-    const base = join(__dirname, '../../data/missing.fid');
-    // convert the filelist returned by fromPath
-    // test some properties of the main object
-    await convert1D(fromPath(base)).catch((e) =>
-      expect(e.message).toMatch('fidB and/or '),
+    const base = join(__dirname, 'data/missing.fid');
+    await convert1D(await fileCollectionFromPath(base)).catch((e) =>
+      expect(e.message).toMatch('fid and procpar must exist'),
     );
-  });
-
-  //zipped directory
-  it('proton.fid.zip', async () => {
-    const ab = readFileSync(join(__dirname, '../../data/proton.zip'));
-    const result = await convert1D(await fromZip(ab));
-    expect(Object.keys(result)).toHaveLength(4);
   });
 
   //2D file
   it('2D zipped file', async () => {
-    const ab = readFileSync(join(__dirname, '../../data/gDQCOSY.zip'));
-    await convert1D(await fromZip(ab)).catch((e) =>
-      expect(e.message).toMatch('nBlocks is 400. '),
+    const ab = readFileSync(join(__dirname, 'data/gDQCOSY.zip'));
+    await convert1D(await fileCollectionFromZip(ab)).catch((e) =>
+      expect(e.message).toMatch('found nBlocks 400, but expected 1'),
     );
   });
 });

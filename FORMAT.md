@@ -89,6 +89,19 @@ Get the parameters from the array: `arr.filter(p=> p.name=='<name>')`. These are
 * **time\_complete** (also time\_saved, time\_run...)
 * **username**
 
+## A few notes from authors (extracted from `./docs` folder)
+
+(...) to determine the data structure and type clearly it is far safer for importing software to look at the binary data file and its headers, rather than trying to extract this information from the parameter file.
 
 See [OpenVnmrJ variables.h](https://github.com/OpenVnmrJ/OpenVnmrJ/blob/master/src/vnmr/variables.h) for info on how to parse this file.
 
+<!-- 
+this is how you'd expect to handle multiblocks 
+/* next code will be part of convert 2D instead
+     if(fileHeader.nBlocks>1){
+     for (let i = 0; i < fileHeader.nBlocks; i++) {
+     fids.push(new Block(fidBuffer, fileHeader));
+     }}
+     else {}
+   */
+-->
