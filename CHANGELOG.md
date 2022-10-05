@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.3.0](https://github.com/cheminfo/varian-converter/compare/v0.2.0...v0.3.0) (2022-10-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* support for filecollection, refactor, added 18x to workflow (#10)
+
+### Features
+
+* support for filecollection, refactor, added 18x to workflow ([#10](https://github.com/cheminfo/varian-converter/issues/10)) ([bcf14ce](https://github.com/cheminfo/varian-converter/commit/bcf14cea6f88ad136545decd3e8dcdb5d44602c5))
+
 ## [0.2.0](https://github.com/cheminfo/varian-converter/compare/v0.1.0...v0.2.0) (2022-03-05)
 
 
