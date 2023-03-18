@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/cheminfo/varian-converter/compare/v0.3.0...v0.3.1) (2023-03-13)
+
+
+### Bug Fixes
+
+* update filelist-utils to 1.8.0 ([#17](https://github.com/cheminfo/varian-converter/issues/17)) ([53bb5d8](https://github.com/cheminfo/varian-converter/commit/53bb5d8d1a9ce113b913f60dbe4c6a0de7407694))
+
 ## [0.3.0](https://github.com/cheminfo/varian-converter/compare/v0.2.0...v0.3.0) (2022-10-05)
 
 
