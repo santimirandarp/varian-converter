@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/cheminfo/varian-converter/compare/v0.3.1...v0.3.2) (2023-03-24)
+
+
+### Bug Fixes
+
+* update ml-spectra-processing ([e575a3a](https://github.com/cheminfo/varian-converter/commit/e575a3ad1fbfbaab5c22993ce1d1d1a1217fa236))
+
 ## [0.3.1](https://github.com/cheminfo/varian-converter/compare/v0.3.0...v0.3.1) (2023-03-13)
 
 
