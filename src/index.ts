@@ -1,2 +1,2 @@
 export * from './convert1D';
-export { Param } from './readProcPar';
+export type { Param } from './readProcPar';
