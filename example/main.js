@@ -1,10 +1,10 @@
-import {fileListFromZip} from 'filelist-from';
+import {fileListFromZip} from 'filelist-utils';
 import { convert1D as cv} from './lib-esm/convert1D';
 
 const idir = document.getElementById("directory");
 const ifile = document.getElementById("zip");
 
-run on directory upload
+// run on directory upload
 async function Dir(){
   console.log("loading directory..!")
     const fileList = await idir.files
