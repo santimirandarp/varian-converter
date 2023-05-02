@@ -1,27 +1,37 @@
-import React from "react"
+import React from 'react';
+import { ActiveZone } from './ActiveZone';
+import { parseDir, parseZip } from './parseInput';
 
-export function App() {
+function App() {
+  const zippedFileProps = {
+    text: 'Browse for a zipped file',
+    getData: parseZip,
+    type: 'file',
+    id: 'zip',
+    name: 'zip',
+    accept: '.zip',
+  };
+  const dirProps = {
+    text: 'Browse for a directory',
+    getData: parseDir,
+    type: 'file',
+    id: 'dir',
+    name: 'dir',
+    webkitdirectory: '',
+    directory: '',
+  };
   return (
-    <><h1>1D Spectra</h1>
-    <Form/>
+    <>
+      <h1>1D Spectra</h1>
+      <div className="inputArea">
+        <ActiveZone {...zippedFileProps} />
+      </div>
+      <div className="inputArea">
+        <ActiveZone {...dirProps} />
+      </div>
+      <p id="info"></p>
     </>
-  )
+  );
 }
-function Form(){
-    return (
-      <form id="form">
-        <p>
-          <label htmlFor="zippedFile">Browse for a zipped file</label>
-          <input type="file" id="zippedFile" name="zippedFile" accept=".zip" />
-        </p>
-        <p>
-          <label htmlFor="dir">Browse for a directory</label>
-          <input type="file" id="dir" name="dir" 
-          /* @ts-expect-error */
-          webkitdirectory="" directory=""/>
-        </p>
-        <p id="info"></p>
-      </form>
-    )
-}
-export default App
+
+export default App;

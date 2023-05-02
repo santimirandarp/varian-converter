@@ -1,28 +1,30 @@
+import { ChangeEvent } from 'react';
 import {
   fileCollectionFromFileList,
   fileCollectionFromZip,
 } from 'filelist-utils';
 import { convert1D as cv } from '../src/index';
 
-const form = document.getElementById('form') as HTMLFormElement;
-const info = document.getElementById('info') as HTMLDivElement;
-
-form.addEventListener('change', async (e) => {
+export async function parseDir(e: ChangeEvent<HTMLInputElement>) {
   e.preventDefault();
   const input = e.target as HTMLInputElement;
-  try {
-    const fromDir =
-      input.files &&
-      input.id === 'dir' &&
-      (await cv(await fileCollectionFromFileList(input.files)));
-    const fromZip =
-      input.files &&
-      input.id === 'zippedFile' &&
-      (await cv(await fileCollectionFromZip(input.files[0])));
-    console.log('dir', fromDir, 'zip', fromZip);
-    info.innerHTML = "parsed data was logged to browser's console";
-  } catch (e) {
-    console.error(e);
-    info.innerHTML = e.message;
-  }
-});
+  const fromDir =
+    input.files &&
+    input.id === 'dir' &&
+    (await cv(await fileCollectionFromFileList(input.files)));
+
+  if (fromDir) return fromDir;
+  else return null;
+}
+
+export async function parseZip(e: ChangeEvent<HTMLInputElement>) {
+  e.preventDefault();
+  const input = e.target as HTMLInputElement;
+  const fromZip =
+    input.files &&
+    input.id === 'zip' &&
+    (await cv(await fileCollectionFromZip(input.files[0])));
+  console.log('parsed from zip', fromZip);
+  if (fromZip) return fromZip;
+  else return null;
+}
