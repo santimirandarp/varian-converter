@@ -6,7 +6,13 @@ import {
   useRectangularZoom,
   PlotController,
 } from 'react-plot';
-import { reimFFT, xyToXYObject } from 'ml-spectra-processing';
+import {
+  reimAbsolute,
+  reimAutoPhaseCorrection,
+  reimFFT,
+  reimPhaseCorrection,
+  xyToXYObject,
+} from 'ml-spectra-processing';
 
 export function ActiveZone(props: InputProps) {
   const { getData, text, type, id, name, accept, ...otherProps } = props;
@@ -42,11 +48,17 @@ export function ActiveZone(props: InputProps) {
 function Varian1DPlot(experiment: Fid1D) {
   useRectangularZoom();
   const x = experiment.x;
-  const fft = experiment.fid.data.map(({ re, im }) =>
-    fft({ re: new Float64Array(re), im: new Float64Array(im) }),
+  const fftData = experiment.fid.data.map(({ re, im }) =>
+    reimFFT(
+      {
+        re: new Float64Array(re),
+        im: new Float64Array(im),
+      },
+      { applyZeroShift: true },
+    ),
   );
-  const re = fft.map((value) => value.re);
-  const im = fft.map((value) => value.im);
+  const re = fftData.map((value) => value.re);
+  const im = fftData.map((value) => value.im);
   const spectraRe = re.map((spectrum) => {
     return xyToXYObject({ x, y: new Float64Array(spectrum) });
   });
