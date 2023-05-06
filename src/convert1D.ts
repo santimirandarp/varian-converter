@@ -12,8 +12,6 @@ import { setEndianFromValue } from './utils';
    |  filehead  blockhead  blockdata  blockhead  blockdata ...
   The file head is "meta", the rest is under "fid".
 */
-
-/* For more than 1D, fid will be Block[] probably, the rest the same */
 export interface Fid1D {
   meta: FileHeader /** head of the fid file.*/;
 
@@ -34,9 +32,9 @@ export async function convert1D(fidDir: FileCollection): Promise<Fid1D> {
   let fidB: ArrayBuffer | undefined;
   let procparB: ArrayBuffer | undefined;
 
-  for (let fb of fidDir) {
+  for (const fb of fidDir) {
     //get the binary data
-    let val = fb.name.toLowerCase();
+    const val = fb.name.toLowerCase();
     switch (val) {
       case 'fid': {
         fidB = await fb.arrayBuffer();
@@ -87,7 +85,7 @@ export async function convert1D(fidDir: FileCollection): Promise<Fid1D> {
       distribution: 'uniform',
     });
 
-    /* read the data block(s) for the fid file */
+    /* read the data block for the fid file */
     const fid = new Block(fidBuffer, fileHeader);
 
     return { meta: fileHeader, fid, procpar, x };
