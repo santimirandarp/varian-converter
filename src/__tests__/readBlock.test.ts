@@ -10,9 +10,9 @@ import { setEndianFromValue } from '../utils';
 describe('read data blocks for different data types', () => {
   it('float32', () => {
     const float = readFileSync(join(__dirname, 'data/proton.fid/fid'));
-    let bufferFloats = new IOBuffer(float);
+    const bufferFloats = new IOBuffer(float);
     setEndianFromValue(bufferFloats);
-    let fh = new FileHeader(bufferFloats);
+    const fh = new FileHeader(bufferFloats);
 
     bufferFloats.offset = 32;
     const block = new Block(bufferFloats, fh);
@@ -26,19 +26,20 @@ describe('read data blocks for different data types', () => {
       index: 1,
       ctCount: 160,
     });
-
-    expect(block.data).toHaveLength(block.index);
-    expect(block.data[0].re).toHaveLength(fh.np / 2);
-    expect(block.data[0].im).toHaveLength(fh.np / 2);
+    const dataBlocks = block.data;
+    expect(dataBlocks).toHaveLength(block.index);
+    expect(dataBlocks[0].re).toHaveLength(fh.np / 2);
+    expect(dataBlocks[0].im).toHaveLength(fh.np / 2);
+    expect(dataBlocks[0].re[0]).toMatchSnapshot();
   });
 
   it('int32', () => {
     const int = readFileSync(
       join(__dirname, 'data/2-Ketobutyric_acid_noesy.fid/fid'),
     );
-    let bufferInt = new IOBuffer(int);
+    const bufferInt = new IOBuffer(int);
     setEndianFromValue(bufferInt);
-    let fh = new FileHeader(bufferInt);
+    const fh = new FileHeader(bufferInt);
 
     bufferInt.offset = 32;
     const block = new Block(bufferInt, fh);

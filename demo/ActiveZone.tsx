@@ -6,13 +6,7 @@ import {
   useRectangularZoom,
   PlotController,
 } from 'react-plot';
-import {
-  reimAbsolute,
-  reimAutoPhaseCorrection,
-  reimFFT,
-  reimPhaseCorrection,
-  xyToXYObject,
-} from 'ml-spectra-processing';
+import { reimFFT, xyToXYObject } from 'ml-spectra-processing';
 
 export function ActiveZone(props: InputProps) {
   const { getData, text, type, id, name, accept, ...otherProps } = props;
@@ -23,7 +17,6 @@ export function ActiveZone(props: InputProps) {
   }
   return (
     <>
-      <label htmlFor={id}>{text}</label>
       <input
         onChange={handleChange}
         type={type}

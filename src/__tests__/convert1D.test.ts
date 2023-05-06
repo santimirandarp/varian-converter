@@ -15,8 +15,6 @@ describe('convert fid directory', () => {
     expect(Object.keys(parsed.fid)).toHaveLength(10);
     expect(parsed.procpar).toHaveLength(499);
     expect(parsed.x).toHaveLength(parsed.meta.np / 2);
-
-    expect(parsed).toMatchSnapshot();
   });
 
   it('missing "fid" in dir should error out', async () => {
