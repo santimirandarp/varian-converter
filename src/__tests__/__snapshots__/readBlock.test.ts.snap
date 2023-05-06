@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`read data blocks for different data types > float32 1`] = `-214394.875`;
