@@ -1,6 +1,6 @@
 import { FileCollection } from 'filelist-utils';
 import { IOBuffer } from 'iobuffer';
-import { createFromToArray as createXArray } from 'ml-spectra-processing';
+import {createFromToArray} from 'ml-spectra-processing/utils';
 
 import { Block } from './readBlock';
 import { FileHeader } from './readFileHeader';
@@ -77,7 +77,7 @@ export async function convert1D(fidDir: FileCollection): Promise<Fid1D> {
   if (typeof at !== 'number') {
     throw new Error('acquisition time parameter must exist and be a number.');
   } else {
-    const x = createXArray({
+    const x = createFromToArray({
       //time axis
       from: 0,
       to: at,
