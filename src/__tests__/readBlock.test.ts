@@ -30,7 +30,7 @@ describe('read data blocks for different data types', () => {
     expect(dataBlocks).toHaveLength(block.index);
     expect(dataBlocks[0].re).toHaveLength(fh.np / 2);
     expect(dataBlocks[0].im).toHaveLength(fh.np / 2);
-    expect(dataBlocks[0].re[0]).toMatchSnapshot();
+    expect(dataBlocks[0].re[0]).toBe(-214394.875);
   });
 
   it('int32', () => {
