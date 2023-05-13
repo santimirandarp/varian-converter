@@ -1,6 +1,6 @@
 import { FileCollection } from 'filelist-utils';
 import { IOBuffer } from 'iobuffer';
-import {createFromToArray} from 'ml-spectra-processing/utils';
+import { createFromToArray } from 'ml-spectra-processing/utils';
 
 import { Block } from './readBlock';
 import { FileHeader } from './readFileHeader';
