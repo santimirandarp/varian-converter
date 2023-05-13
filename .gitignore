@@ -122,3 +122,4 @@ lib-esm
 
 # for typedoc tests
 .docs
+.vscode
